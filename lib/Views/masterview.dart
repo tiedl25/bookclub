@@ -1,8 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:linear_progress_bar/linear_progress_bar.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -25,6 +22,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<String> members = ['Tiedl', 'Ronja', 'Bärtschi', 'Johanna', 'Leo', 'Eve'];
   late List<int> pages;
+  int bookPages = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +41,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                return Container(
-                  //width: MediaQuery.of(context).size.width,
+                return SizedBox(
+                  width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height/2,
                   child: ListView.builder(
                   physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
@@ -52,15 +50,51 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, i) {
                     return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ListTile(
-                          title: Text(members[i]),
+                        Text(members[i].toString()),
+                        IconButton(
+                          onPressed: (){
+                            showDialog(context: context, builder: (builder){
+                              TextEditingController controller = TextEditingController(text: snapshot.data![i].toString());
+                              return AlertDialog(
+                                title: const Text("Update page number"),
+                                content: TextField(
+                                  keyboardType: TextInputType.number,
+                                  autofocus: true,
+                                  controller: controller,
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: const Text("Update"),
+                                    onPressed: (){
+                                      setState(() {
+                                        int nr = int.parse(controller.text);
+                                        updatePage(members[i], nr > bookPages ? bookPages : nr);
+                                      });
+                                      Navigator.of(context).pop();
+                                    }
+                                  )
+                                ]
+                              );
+                            });
+                          }, 
+                          icon: const Icon(Icons.update),
                         ),
                         Container(
-                          alignment: Alignment.topCenter,
-                          margin: EdgeInsets.all(20),
-                          child: LinearProgressIndicator(
-                            value: 0.7,
+                          width: MediaQuery.of(context).size.width*0.9,
+                          margin: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              LinearProgressIndicator(
+                                value: snapshot.data![i]/bookPages,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              Align(
+                                alignment: AlignmentGeometry.lerp(Alignment.topLeft, Alignment.topRight, snapshot.data![i]/bookPages) as AlignmentGeometry,
+                                child: Text(snapshot.data![i] == bookPages ? 'Finished' : 'Page ${snapshot.data![i]}'),
+                              )
+                            ]
                           )
                         )
                       ],
@@ -81,12 +115,19 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Future<void> updatePage(String name, int page) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt(name, page);
+  }
+
   Future<List<int>> getMembers() async {
     final prefs = await SharedPreferences.getInstance();
     pages = [];
     for(String name in members){
       pages.add(prefs.getInt(name) ?? 0);
     }
+
+    bookPages = prefs.getInt('pages') ?? 0;
     return pages;
   }
 }
