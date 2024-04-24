@@ -24,6 +24,32 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<int> pages;
   int bookPages = 0;
 
+  showUpdateDialog(int i, int page){
+    showDialog(context: context, builder: (builder){
+      TextEditingController controller = TextEditingController(text: page.toString());
+      return AlertDialog(
+        title: const Text("Update page number"),
+        content: TextField(
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          controller: controller,
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Update"),
+            onPressed: (){
+              setState(() {
+                int nr = int.parse(controller.text);
+                updatePage(members[i], nr > bookPages ? bookPages : nr);
+              });
+              Navigator.of(context).pop();
+            }
+          )
+        ]
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,29 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         Text(members[i].toString()),
                         IconButton(
                           onPressed: (){
-                            showDialog(context: context, builder: (builder){
-                              TextEditingController controller = TextEditingController(text: snapshot.data![i].toString());
-                              return AlertDialog(
-                                title: const Text("Update page number"),
-                                content: TextField(
-                                  keyboardType: TextInputType.number,
-                                  autofocus: true,
-                                  controller: controller,
-                                ),
-                                actions: [
-                                  TextButton(
-                                    child: const Text("Update"),
-                                    onPressed: (){
-                                      setState(() {
-                                        int nr = int.parse(controller.text);
-                                        updatePage(members[i], nr > bookPages ? bookPages : nr);
-                                      });
-                                      Navigator.of(context).pop();
-                                    }
-                                  )
-                                ]
-                              );
-                            });
+                            showUpdateDialog(i, snapshot.data![i]);
                           }, 
                           icon: const Icon(Icons.update),
                         ),
@@ -126,8 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
     for(String name in members){
       pages.add(prefs.getInt(name) ?? 0);
     }
-
-    bookPages = prefs.getInt('pages') ?? 0;
+    bookPages = prefs.getInt('pages') ?? 1;
     return pages;
   }
 }
