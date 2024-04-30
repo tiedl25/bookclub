@@ -1,23 +1,26 @@
-import 'package:flutter/foundation.dart';
-
 class Book{
   int? id;
   String name;
-  Uint8List image;
+  String author;
+  int pages;
+  String image_path;
 
-  Book({this.id, required this.name, required this.image});
+  Book({this.id, required this.name, required this.image_path, required this.author, required this.pages});
 
   Map<String, dynamic> toMap() => {
     'name': name,
-    'id': id,
-    'image': image,
+    'image_path': image_path,
+    'author': author,
+    'pages': pages,
   };
 
   factory Book.fromMap(Map<String, dynamic> map) {
     return Book(
       id: map['id'],
       name: map['name'],
-      image: map['image'],
+      image_path: map['image_path'],
+      author: map['author'],
+      pages: map['pages']
     );
   }
 }

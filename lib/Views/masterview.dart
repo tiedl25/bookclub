@@ -1,17 +1,11 @@
+import 'package:bookclub/database.dart';
+import 'package:bookclub/models/book.dart';
+import 'package:bookclub/models/member.dart';
+import 'package:bookclub/models/progress.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -20,13 +14,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> members = ['Tiedl', 'Ronja', 'Bärtschi', 'Johanna', 'Leo', 'Eve'];
-  late List<int> pages;
-  int bookPages = 0;
+  late List<Member> members;
+  late Book book;
 
-  showUpdateDialog(int i, int page){
+  showUpdateDialog(Progress progress){
     showDialog(context: context, builder: (builder){
-      TextEditingController controller = TextEditingController(text: page.toString());
+      TextEditingController controller = TextEditingController(text: progress.page.toString());
       return AlertDialog(
         title: const Text("Update page number"),
         content: TextField(
@@ -40,7 +33,8 @@ class _MyHomePageState extends State<MyHomePage> {
             onPressed: (){
               setState(() {
                 int nr = int.parse(controller.text);
-                updatePage(members[i], nr > bookPages ? bookPages : nr);
+                progress.page = nr > book.pages ? book.pages : nr;
+                updatePage(progress);
               });
               Navigator.of(context).pop();
             }
@@ -54,83 +48,76 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          children: [
-            Container(
-              height: MediaQuery.of(context).size.height/2,
-              child: Image.asset('assets/images/the picture.jpg'),
-            ),
-            FutureBuilder(
+        child: FutureBuilder(
               future: getMembers(),
-              builder: (BuildContext context, AsyncSnapshot<List<int>> snapshot) {
+              builder: (BuildContext context, AsyncSnapshot<List<Progress>> snapshot) {
                 if (!snapshot.hasData){
                   return const Center(child: CircularProgressIndicator());
                 }
-
-                return SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height/2,
-                  child: ListView.builder(
-                  physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, i) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(members[i].toString()),
-                        IconButton(
-                          onPressed: (){
-                            showUpdateDialog(i, snapshot.data![i]);
-                          }, 
-                          icon: const Icon(Icons.update),
-                        ),
-                        Container(
-                          width: MediaQuery.of(context).size.width*0.9,
-                          margin: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              LinearProgressIndicator(
-                                value: snapshot.data![i]/bookPages,
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              Align(
-                                alignment: AlignmentGeometry.lerp(Alignment.topLeft, Alignment.topRight, snapshot.data![i]/bookPages) as AlignmentGeometry,
-                                child: Text(snapshot.data![i] == bookPages ? 'Finished' : 'Page ${snapshot.data![i]}'),
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height/2,
+                      child: Image.network(book.image_path),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height/2,
+                      child: ListView.builder(
+                      physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, i) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(members.firstWhere((element) => element.id == snapshot.data![i].memberId).name),
+                            IconButton(
+                              onPressed: (){
+                                showUpdateDialog(snapshot.data![i]);
+                              }, 
+                              icon: const Icon(Icons.update),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width*0.9,
+                              margin: const EdgeInsets.all(20),
+                              child: Column(
+                                children: [
+                                  LinearProgressIndicator(
+                                    value: snapshot.data![i].page/book.pages,
+                                    borderRadius: BorderRadius.circular(5),
+                                    color: Color(members.firstWhere((element) => element.id == snapshot.data![i].memberId).color),
+                                  ),
+                                  Align(
+                                    alignment: AlignmentGeometry.lerp(Alignment.topLeft, Alignment.topRight, snapshot.data![i].page/book.pages) as AlignmentGeometry,
+                                    child: Text(snapshot.data![i].page == book.pages ? 'Finished' : 'Page ${snapshot.data![i].page} (${(snapshot.data![i].page/book.pages*100).toStringAsFixed(0)}%)'),
+                                  )
+                                ]
                               )
-                            ]
-                          )
-                        )
-                      ],
-                    );
-                  }
-                ),
+                            )
+                          ],
+                        );
+                      }
+                    ),
+                    )
+                  ]
                 );
               },
-            )
-          ],
-        )
-        
-        
-        
-        
-
+            )    
     )
     );
   }
 
-  Future<void> updatePage(String name, int page) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setInt(name, page);
+  Future<void> updatePage(Progress progress) async {
+    DatabaseHelper.instance.updateProgress(progress);
   }
 
-  Future<List<int>> getMembers() async {
-    final prefs = await SharedPreferences.getInstance();
-    pages = [];
-    for(String name in members){
-      pages.add(prefs.getInt(name) ?? 0);
-    }
-    bookPages = prefs.getInt('pages') ?? 1;
-    return pages;
+  Future<List<Progress>> getMembers() async {
+    members = await DatabaseHelper.instance.getMemberList();
+    
+    book = await DatabaseHelper.instance.getCurrentBook();
+    
+    List<Progress> progress = await DatabaseHelper.instance.getProgressList(book.id!);
+    return progress;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'Views/masterview.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
