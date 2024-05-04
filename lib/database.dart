@@ -18,7 +18,7 @@ class DatabaseHelper {
 
   Future<SupabaseClient> _initDatabase() async {
     await Supabase.initialize(
-      url: 'http://192.168.178.63:8000',
+      url: 'https://supabase.tiedl.rocks',
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE',
     );
 
@@ -43,6 +43,15 @@ class DatabaseHelper {
     } else {
       throw Exception('Book not found');
     }
+  }
+
+  Future<List<Book>> getBookList() async {
+    var response = await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return (await db.from('books').select().order('id', ascending: true));
+    });
+
+    return response.isNotEmpty ? List.generate(response.length, (index) => Book.fromMap(response[index])) : [];
   }
 
   Future<Book> getCurrentBook() async {
@@ -84,7 +93,7 @@ class DatabaseHelper {
   Future<List<Member>> getMemberList() async {
     var response = await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
-      return (await db.from('members').select());
+      return (await db.from('members').select().order('id', ascending: true));
     });
 
     return response.isNotEmpty ? List.generate(response.length, (index) => Member.fromMap(response[index])) : [];
@@ -93,7 +102,7 @@ class DatabaseHelper {
   Future<List<Progress>> getProgressList(int bookId) async {
     var response = await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
-      return (await db.from('progress').select().eq('book', bookId));
+      return (await db.from('progress').select().eq('book', bookId).order('id', ascending: true));
     });
 
     return response.isNotEmpty ? List.generate(response.length, (index) => Progress.fromMap(response[index])) : [];
