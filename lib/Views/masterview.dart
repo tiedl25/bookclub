@@ -1,9 +1,15 @@
+import 'dart:math';
+
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -20,6 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Book book;
   bool initItems = false;
   late double aspRat;
+  late double nameMaxLength;
 
   @override
   void initState() {
@@ -32,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
     books = await DatabaseHelper.instance.getBookList();
     book = await DatabaseHelper.instance.getCurrentBook();
     aspRat = MediaQuery.of(context).size.aspectRatio;
+    nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
   }
 
   showUpdateDialog(Progress progress){
@@ -61,6 +69,126 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  Widget rating(Progress progress) {
+    return Row(
+      children: List.generate(
+        7, 
+        (index) {
+          return InkWell(
+            child: Icon(Icons.book, color: progress.rating == null || progress.rating! < index + 1 ? Colors.grey : Colors.blue),
+            onTap: () {
+              if (progress.rating == index+1){
+                progress.rating = 0;
+              } else {
+                progress.rating = index + 1;
+              }
+              
+              setState(() {
+                DatabaseHelper.instance.updateProgress(progress);
+              });
+            },
+          );
+        }
+        )
+    );
+  }
+
+  oldProgressIndicator(Progress progress){
+    return Stack(
+      children: [
+        LinearProgressIndicator(
+          minHeight: 20,
+          value: progress.page/book.pages,
+          borderRadius: BorderRadius.circular(10),
+          color: Color(members.firstWhere((element) => element.id == progress.memberId).color),
+        ),
+        Align(
+          alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/book.pages) as AlignmentGeometry,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Text(progress.page == book.pages ? 'Finished' : 'Page ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)')
+          ),
+        )
+      ]
+    );
+  }
+
+  desktopProgressIndicator(Progress progress){
+    return LinearPercentIndicator(
+        //width: MediaQuery.of(context).size.width*0.7,
+        widgetIndicator: Text(progress.page == book.pages ? 'Finished' : 'Page ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)'),
+        lineHeight: 10,
+      percent: progress.page/book.pages,
+      progressColor: Color(members.firstWhere((element) => element.id == progress.memberId).color),
+      barRadius: const Radius.circular(10),
+    );
+  }
+
+  mobileProgressIndicator(Progress progress){
+    return CircularPercentIndicator(
+        //width: MediaQuery.of(context).size.width*0.7,
+        widgetIndicator: Text(progress.page == book.pages ? 'Finished' : 'Page ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)'),
+      percent: progress.page/book.pages,
+      progressColor: Color(members.firstWhere((element) => element.id == progress.memberId).color),
+      radius: 50,
+    );
+  }
+
+  mobileProgress(Progress progress){
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: nameMaxLength,
+              child: Text(members.firstWhere((element) => element.id == progress.memberId).name)
+            ),
+            IconButton(
+              onPressed: (){
+                showUpdateDialog(progress);
+              }, 
+              icon: const Icon(Icons.update),
+            ),
+            Expanded(child: rating(progress)),
+          ],
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width*0.9,
+          child: oldProgressIndicator(progress),
+        )
+        
+        
+      ]
+    );
+  }
+
+  desktopProgress(Progress progress){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SizedBox(
+          width: nameMaxLength,
+          child: Text(members.firstWhere((element) => element.id == progress.memberId).name)
+        ),
+        IconButton(
+          onPressed: (){
+            showUpdateDialog(progress);
+          }, 
+          icon: const Icon(Icons.update),
+        ),
+        const Spacer(flex: 1,),
+        Expanded(
+          flex: 30,
+          child: oldProgressIndicator(progress),
+        ),
+        const Spacer(flex: 1,),
+        rating(progress),
+        const Spacer(flex: 1,),
+      ],
+    );
+  }
+
   Widget memberProgress(AsyncSnapshot<List<Progress>> snapshot){
     return SizedBox(
       width: MediaQuery.of(context).size.width,
@@ -70,40 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16),
         itemCount: snapshot.data!.length,
         itemBuilder: (context, i) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(members.firstWhere((element) => element.id == snapshot.data![i].memberId).name),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: (){
-                      showUpdateDialog(snapshot.data![i]);
-                    }, 
-                    icon: const Icon(Icons.update),
-                  ),
-                  Container(
-                    width: aspRat > 1 ? MediaQuery.of(context).size.width*0.9 : MediaQuery.of(context).size.width*0.4,
-                    margin: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        LinearProgressIndicator(
-                          value: snapshot.data![i].page/book.pages,
-                          borderRadius: BorderRadius.circular(5),
-                          color: Color(members.firstWhere((element) => element.id == snapshot.data![i].memberId).color),
-                        ),
-                        Align(
-                          alignment: AlignmentGeometry.lerp(Alignment.topLeft, Alignment.topRight, snapshot.data![i].page/book.pages) as AlignmentGeometry,
-                          child: Text(snapshot.data![i].page == book.pages ? 'Finished' : 'Page ${snapshot.data![i].page} (${(snapshot.data![i].page/book.pages*100).toStringAsFixed(0)}%)'),
-                        )
-                      ]
-                    )
-                  )
-                ],
-              )
-              
-            ],
-          );
+          return aspRat < 1 ? mobileProgress(snapshot.data![i]) : desktopProgress(snapshot.data![i]);
         }
       ),
     );
@@ -112,14 +207,14 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget bookCarousel(){
     return CarouselSlider(
       options: CarouselOptions(
-        height: MediaQuery.of(context).size.height/2,
-        viewportFraction: 0.35/aspRat,//aspRat < 1 ? 0.7 : 0.2,
+        height: MediaQuery.of(context).size.height/(aspRat<1 ? 3 : 2),
+        viewportFraction: aspRat < 1 ? 0.25/aspRat : 0.4/aspRat,
         initialPage: book.id!-1,
         enableInfiniteScroll: false,
         reverse: false,
         autoPlay: false,
         enlargeCenterPage: true,
-        enlargeFactor: 0.3,
+        enlargeFactor: 0.25,
         scrollDirection: Axis.horizontal,
         onPageChanged: (index, reason) => setState(() => book = books[index]),
       ),
@@ -146,8 +241,10 @@ class _MyHomePageState extends State<MyHomePage> {
             }
             return Column(
               children: [
+                Spacer(flex: 1),
                 bookCarousel(),
-                memberProgress(snapshot)
+                Spacer(flex: 1),
+                Expanded(child: memberProgress(snapshot), flex: 10),
               ]
             );
           },
