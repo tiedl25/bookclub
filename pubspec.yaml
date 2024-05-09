@@ -39,6 +39,7 @@ dependencies:
   supabase_flutter: ^2.5.1
   carousel_slider: ^4.2.1
   percent_indicator: ^4.2.3
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:

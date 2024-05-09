@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
@@ -250,18 +251,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 const Spacer(flex: 1),
                 bookCarousel(),
                 const Spacer(flex: 1),
-                IntrinsicHeight(child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('${book.name} von ${book.author}', style: const TextStyle(fontSize: 20)),
-                    const VerticalDivider(),
-                    Text('${book.pages} Seiten', style: const TextStyle(fontSize: 20)),
-                  ]
-                )),
+                AutoSizeText('${book.name} von ${book.author} - ${book.pages} Seiten', textAlign: TextAlign.center, minFontSize: 18,),
                 if (book.to.difference(DateTime.now()).inDays > 0) 
-                  Text('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', style: const TextStyle(fontSize: 20)),
+                  AutoSizeText('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
                 if (book.to.difference(DateTime.now()).inDays > 0) 
-                  Text('Seite ${minimumPages()} sollte jetzt schon drin sein.', style: const TextStyle(fontSize: 20)),
+                  AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
 
                 const Divider(),
                 Expanded(flex: 20, child: memberProgress(snapshot)),
