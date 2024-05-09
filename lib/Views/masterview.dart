@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bookclub/colors.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
@@ -74,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
         7, 
         (index) {
           return InkWell(
-            child: Icon(Icons.book, color: progress.rating == null || progress.rating! < index + 1 ? Colors.grey : Colors.blue),
+            child: Icon(Icons.book, color: progress.rating == null || progress.rating! < index + 1 ? bookDefaultColor : bookSelectedColor),
             onTap: () {
               if (progress.rating == index+1){
                 progress.rating = 0;
