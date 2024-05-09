@@ -5,9 +5,7 @@ import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
@@ -106,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
           alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/book.pages) as AlignmentGeometry,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(progress.page == book.pages ? 'Finished' : 'Page ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)')
+            child: Text(progress.page == book.pages ? 'Finished' : 'Seite ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)')
           ),
         )
       ]
@@ -228,6 +226,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  int daysLeft(){
+    return book.to.difference(DateTime.now()).inDays;
+  }
+
+  int minimumPages(){
+    return (book.pages/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
+  }
+
   @override
   Widget build(BuildContext context) {
     aspRat = MediaQuery.of(context).size.aspectRatio;
@@ -241,10 +247,24 @@ class _MyHomePageState extends State<MyHomePage> {
             }
             return Column(
               children: [
-                Spacer(flex: 1),
+                const Spacer(flex: 1),
                 bookCarousel(),
-                Spacer(flex: 1),
-                Expanded(child: memberProgress(snapshot), flex: 10),
+                const Spacer(flex: 1),
+                IntrinsicHeight(child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('${book.name} von ${book.author}', style: const TextStyle(fontSize: 20)),
+                    const VerticalDivider(),
+                    Text('${book.pages} Seiten', style: const TextStyle(fontSize: 20)),
+                  ]
+                )),
+                if (book.to.difference(DateTime.now()).inDays > 0) 
+                  Text('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', style: const TextStyle(fontSize: 20)),
+                if (book.to.difference(DateTime.now()).inDays > 0) 
+                  Text('Seite ${minimumPages()} sollte jetzt schon drinn sein', style: const TextStyle(fontSize: 20)),
+
+                const Divider(),
+                Expanded(flex: 20, child: memberProgress(snapshot)),
               ]
             );
           },
