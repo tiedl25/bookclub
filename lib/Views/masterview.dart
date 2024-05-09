@@ -261,7 +261,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (book.to.difference(DateTime.now()).inDays > 0) 
                   Text('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', style: const TextStyle(fontSize: 20)),
                 if (book.to.difference(DateTime.now()).inDays > 0) 
-                  Text('Seite ${minimumPages()} sollte jetzt schon drinn sein', style: const TextStyle(fontSize: 20)),
+                  Text('Seite ${minimumPages()} sollte jetzt schon drin sein.', style: const TextStyle(fontSize: 20)),
 
                 const Divider(),
                 Expanded(flex: 20, child: memberProgress(snapshot)),
