@@ -69,6 +69,21 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void showCommentDialog(){
+    showDialog(context: context, builder: (builder){
+      return AlertDialog(
+        insetPadding: EdgeInsets.all(15),
+        scrollable: true,
+        contentPadding: EdgeInsets.all(10),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          child: commentBoard()
+        ),
+      );
+    });
+  }
+
   Widget rating(Progress progress) {
     return Row(
       children: List.generate(
@@ -260,12 +275,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (book.to.difference(DateTime.now()).inDays > 0) 
                   AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
                 const Divider(),
-                Expanded(flex: 20, child: Row(
-                  children: [
-                    Expanded(flex: 20, child: memberProgress(snapshot)),
-                    if (aspRat > 1) Expanded(flex: 10, child: commentBoard()),
-                  ]
-                ),)
+                Expanded(flex: 20, child: 
+                  Row(
+                    children: [
+                      Expanded(flex: 20, child: memberProgress(snapshot)),
+                      if (aspRat > 1) Expanded(flex: 10, child: commentBoard()),
+                    ]
+                  ),
+                ),
+                if (aspRat < 1) IconButton(
+                  onPressed: (){
+                    showCommentDialog();
+                  },
+                  icon: const Icon(Icons.comment)
+                )
               ]
             );
           },
