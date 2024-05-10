@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bookclub/colors.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
+import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -21,6 +22,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late List<Member> members;
   late List<Book> books;
+  late List<Comment> comments;
   late Book book;
   bool initItems = false;
   late double aspRat;
@@ -161,27 +163,11 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         const Spacer(flex: 1,),
         rating(progress),
-        const Spacer(flex: 1,),
       ],
     );
   }
 
-  Widget memberProgress(AsyncSnapshot<List<Progress>> snapshot){
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height/2,
-      child: ListView.builder(
-        physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-        padding: const EdgeInsets.all(16),
-        itemCount: snapshot.data!.length,
-        itemBuilder: (context, i) {
-          return aspRat < 1 ? mobileProgress(snapshot.data![i]) : desktopProgress(snapshot.data![i]);
-        }
-      ),
-    );
-  }
-  
-  Widget bookCarousel(){
+    Widget bookCarousel(){
     return CarouselSlider(
       options: CarouselOptions(
         height: MediaQuery.of(context).size.height/(aspRat<1 ? 3 : 2),
@@ -202,6 +188,45 @@ class _MyHomePageState extends State<MyHomePage> {
             );
           
       }).toList(),
+    );
+  }
+
+  Widget memberProgress(AsyncSnapshot<List<Progress>> snapshot){
+    return SizedBox(
+      child: ListView.builder(
+        physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        itemCount: snapshot.data!.length,
+        itemBuilder: (context, i) {
+          return aspRat < 1 ? mobileProgress(snapshot.data![i]) : desktopProgress(snapshot.data![i]);
+        }
+      ),
+    );
+  }
+
+  Widget commentBoard(){
+    return ListView.builder(
+      itemCount: comments.length,
+      itemBuilder: (BuildContext context, int i) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
+            ),
+            padding: const EdgeInsets.all(5),
+            margin: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(comments[i].text, style: const TextStyle(fontSize: 15)),
+                Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
+              ],
+            )
+          ),
+        );
+      },
     );
   }
 
@@ -234,9 +259,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   AutoSizeText('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
                 if (book.to.difference(DateTime.now()).inDays > 0) 
                   AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
-
                 const Divider(),
-                Expanded(flex: 20, child: memberProgress(snapshot)),
+                Expanded(flex: 20, child: Row(
+                  children: [
+                    Expanded(flex: 20, child: memberProgress(snapshot)),
+                    if (aspRat > 1) Expanded(flex: 10, child: commentBoard()),
+                  ]
+                ),)
               ]
             );
           },
@@ -254,6 +283,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await init();
       initItems = true;
     } 
+    comments = await DatabaseHelper.instance.getComments(book.id!);
     List<Progress> progress = await DatabaseHelper.instance.getProgressList(book.id!);
     return progress;
   }
