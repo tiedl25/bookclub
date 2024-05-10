@@ -32,7 +32,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   }
 
-  init() async {
+  Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
     books = await DatabaseHelper.instance.getBookList();
     book = await DatabaseHelper.instance.getCurrentBook();
@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
     nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
   }
 
-  showUpdateDialog(Progress progress){
+  void showUpdateDialog(Progress progress){
     showDialog(context: context, builder: (builder){
       TextEditingController controller = TextEditingController(text: progress.page.toString());
       return AlertDialog(
@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  progressIndicator(Progress progress){
+  Widget progressIndicator(Progress progress){
     return Stack(
       children: [
         LinearProgressIndicator(
@@ -111,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  mobileProgress(Progress progress){
+  Widget mobileProgress(Progress progress){
     return Column(
       children: [
         Row(
@@ -140,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  desktopProgress(Progress progress){
+  Widget desktopProgress(Progress progress){
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
