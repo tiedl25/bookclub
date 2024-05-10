@@ -8,8 +8,6 @@ import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -93,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  oldProgressIndicator(Progress progress){
+  progressIndicator(Progress progress){
     return Stack(
       children: [
         LinearProgressIndicator(
@@ -110,27 +108,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         )
       ]
-    );
-  }
-
-  desktopProgressIndicator(Progress progress){
-    return LinearPercentIndicator(
-        //width: MediaQuery.of(context).size.width*0.7,
-        widgetIndicator: Text(progress.page == book.pages ? 'Finished' : 'Page ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)'),
-        lineHeight: 10,
-      percent: progress.page/book.pages,
-      progressColor: Color(members.firstWhere((element) => element.id == progress.memberId).color),
-      barRadius: const Radius.circular(10),
-    );
-  }
-
-  mobileProgressIndicator(Progress progress){
-    return CircularPercentIndicator(
-        //width: MediaQuery.of(context).size.width*0.7,
-        widgetIndicator: Text(progress.page == book.pages ? 'Finished' : 'Page ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)'),
-      percent: progress.page/book.pages,
-      progressColor: Color(members.firstWhere((element) => element.id == progress.memberId).color),
-      radius: 50,
     );
   }
 
@@ -155,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         Container(
           width: MediaQuery.of(context).size.width*0.9,
-          child: oldProgressIndicator(progress),
+          child: progressIndicator(progress),
         )
         
         
@@ -180,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
         const Spacer(flex: 1,),
         Expanded(
           flex: 30,
-          child: oldProgressIndicator(progress),
+          child: progressIndicator(progress),
         ),
         const Spacer(flex: 1,),
         rating(progress),
