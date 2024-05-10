@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bookclub/models/book.dart';
+import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -113,6 +114,15 @@ class DatabaseHelper {
       SupabaseClient db = await instance.database;
       return await db.from('progress').update(progress.toMap()).eq('id', progress.id!);
     });
+  }
+
+  Future<List<Comment>> getComments(int bookId) async {
+    var response = await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return (await db.from('comments').select().eq('book', bookId).order('id', ascending: true));
+    });
+
+    return response.isNotEmpty ? List.generate(response.length, (index) => Comment.fromMap(response[index])) : [];
   }
 }
 
