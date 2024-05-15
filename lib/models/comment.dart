@@ -7,7 +7,6 @@ class Comment{
   Comment({this.id, required this.text, this.bookId, this.memberId});
 
   Map<String, dynamic> toMap() => {
-    'id': id,
     'text': text,
     'book': bookId,
     'member': memberId
