@@ -123,6 +123,13 @@ class DatabaseHelper {
     });
   }
 
+  deleteComment(int commentId) async {
+    await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return await db.from('comments').delete().eq('id', commentId);
+    });
+  }
+
   Future<List<Comment>> getComments(int bookId) async {
     var response = await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
