@@ -27,6 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool initItems = false;
   late double aspRat;
   late double nameMaxLength;
+  int selectedMember = 0;
 
   @override
   void initState() {
@@ -219,29 +220,85 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget commentBoard(){
-    return ListView.builder(
-      itemCount: comments.length,
-      itemBuilder: (BuildContext context, int i) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
+  Widget commentField(){
+    final commentController = TextEditingController();
+
+    return Container(
+      //padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        //color: Color(members.firstWhere((element) => element.id == book.memberId).color),
+      ),
+      child: TextField(
+        controller: commentController,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+          labelText: 'Comment',
+          suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: () {  },),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(right: 10),
+            decoration: const BoxDecoration(
+              border: Border(
+                right: BorderSide(width: 1, color: Colors.black38)
+              )
             ),
-            padding: const EdgeInsets.all(5),
-            margin: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(comments[i].text, style: const TextStyle(fontSize: 15)),
-                Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
-              ],
+            child: DropdownMenu(
+              inputDecorationTheme: InputDecorationTheme(
+                border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15)),
+                //focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+              ),
+              menuStyle: MenuStyle(
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.background),
+              ),
+              dropdownMenuEntries: List.generate(
+                members.length, 
+                (index) {
+                  return DropdownMenuEntry(
+                    label: members[index].name,
+                    value: index,
+                  );
+                }
+              )
             )
+          )
+        ),
+      )
+    );
+  }
+
+  Widget commentBoard(){
+    return Column(
+      children: [
+        Expanded(
+          flex: 5,
+          child: ListView.builder(
+            itemCount: comments.length,
+            itemBuilder: (BuildContext context, int i) {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
+                  ),
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(comments[i].text, style: const TextStyle(fontSize: 15)),
+                      Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
+                    ],
+                  )
+                ),
+              );
+            },
           ),
-        );
-      },
+        ),
+        Expanded(child: commentField()),
+      ]
     );
   }
 
@@ -292,8 +349,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ]
             );
           },
-      )    
-    )
+        )    
+      )
     );
   }
 
