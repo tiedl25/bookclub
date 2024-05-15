@@ -292,7 +292,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       children: [
         Expanded(
-          flex: 3,
+          flex: aspRat < 1 ? 5 : 3,
           child: ListView.builder(
             itemCount: comments.length,
             itemBuilder: (BuildContext context, int i) {
