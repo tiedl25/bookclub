@@ -76,11 +76,15 @@ class _MyHomePageState extends State<MyHomePage> {
         insetPadding: EdgeInsets.all(15),
         scrollable: true,
         contentPadding: EdgeInsets.all(10),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: commentBoard()
-        ),
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: commentBoard(setState),
+            );
+          }
+        )
       );
     });
   }
@@ -231,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Widget commentField(){
+  Widget commentField([void Function(VoidCallback fn)? setState]){
     final commentController = TextEditingController();
 
     return Container(
@@ -277,7 +281,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
               ),
               onSelected: (value) {
-                setState(() {
+                (setState ?? this.setState)(() {
                   selectedMember = value ?? 1;
                 });
               },
@@ -288,7 +292,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget commentBoard(){
+  Widget commentBoard([void Function(VoidCallback fn)? setState]){
     return Column(
       children: [
         Expanded(
@@ -322,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         ),
-        Expanded(child: commentField()),
+        Expanded(child: commentField(setState)),
       ]
     );
   }
