@@ -224,15 +224,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void addComment(String value){
+  void addComment(String value, [void Function(VoidCallback fn)? setState]){
     if(value == ''){
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a comment.')));
       return;
     }
-    setState(() {
+    this.setState(() {
       DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: selectedMember));
-      //comments.add(Comment(text: value, bookId: book.id!, memberId: selectedMember));
     });
+    
+    if (setState != null) setState(() {comments.add(Comment(text: value, bookId: book.id!, memberId: selectedMember));});
   }
 
   Widget commentField([void Function(VoidCallback fn)? setState]){
@@ -246,14 +247,14 @@ class _MyHomePageState extends State<MyHomePage> {
         //color: Color(members.firstWhere((element) => element.id == selectedMember).color),
       ),
       child: TextField(
-        onSubmitted: (value) => addComment(value),
+        onSubmitted: (value) => addComment(value, setState),
         controller: commentController,
         decoration: InputDecoration(
           filled: true,
           fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           labelText: 'Comment',
-          suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text),),
+          suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text, setState),),
           prefixIcon: Container(
             margin: const EdgeInsets.only(right: 10),
             decoration: const BoxDecoration(
@@ -302,7 +303,7 @@ class _MyHomePageState extends State<MyHomePage> {
             itemBuilder: (BuildContext context, int i) {
               return GestureDetector(
                 onLongPress: () {
-                  showDeleteDialog(comments[i]);
+                  showDeleteDialog(comments[i], setState);
                 },
                 child: Align(
                   alignment: Alignment.topLeft,
@@ -397,7 +398,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return progress;
   }
   
-  void showDeleteDialog(Comment comment) {
+  void showDeleteDialog(Comment comment, [void Function(VoidCallback fn)? setState]) {
     showDialog(context: context, builder: (builder){
       return AlertDialog(
         title: const Text("Delete comment"),
@@ -409,7 +410,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           TextButton(
             onPressed: (){
-              setState(() { DatabaseHelper.instance.deleteComment(comment.id!); });
+              this.setState(() { DatabaseHelper.instance.deleteComment(comment.id!); });
+              if (setState != null) setState(() {comments.remove(comment);});
               Navigator.pop(context);
             },
             child: const Text("Delete"),
