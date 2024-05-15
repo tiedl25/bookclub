@@ -116,6 +116,13 @@ class DatabaseHelper {
     });
   }
 
+  addComment(Comment comment) async {
+    await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return await db.from('comments').insert(comment.toMap());
+    });
+  }
+
   Future<List<Comment>> getComments(int bookId) async {
     var response = await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
