@@ -296,23 +296,28 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ListView.builder(
             itemCount: comments.length,
             itemBuilder: (BuildContext context, int i) {
-              return Align(
-                alignment: Alignment.topLeft,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
+              return GestureDetector(
+                onLongPress: () {
+                  showDeleteDialog(comments[i]);
+                },
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
+                    ),
+                    padding: const EdgeInsets.all(5),
+                    margin: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(comments[i].text, style: const TextStyle(fontSize: 15)),
+                        Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
+                      ],
+                    )
                   ),
-                  padding: const EdgeInsets.all(5),
-                  margin: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(comments[i].text, style: const TextStyle(fontSize: 15)),
-                      Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
-                    ],
-                  )
-                ),
+                )
               );
             },
           ),
@@ -386,5 +391,27 @@ class _MyHomePageState extends State<MyHomePage> {
     comments = await DatabaseHelper.instance.getComments(book.id!);
     List<Progress> progress = await DatabaseHelper.instance.getProgressList(book.id!);
     return progress;
+  }
+  
+  void showDeleteDialog(Comment comment) {
+    showDialog(context: context, builder: (builder){
+      return AlertDialog(
+        title: const Text("Delete comment"),
+        content: const Text("Are you sure you want to delete this comment?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: (){
+              setState(() { DatabaseHelper.instance.deleteComment(comment.id!); });
+              Navigator.pop(context);
+            },
+            child: const Text("Delete"),
+          )
+        ]
+      );
+    });
   }
 }
