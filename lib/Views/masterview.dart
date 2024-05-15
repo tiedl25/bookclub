@@ -27,7 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool initItems = false;
   late double aspRat;
   late double nameMaxLength;
-  int selectedMember = 0;
+  int selectedMember = 1;
 
   @override
   void initState() {
@@ -220,6 +220,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void addComment(String value){
+    if(value == ''){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a comment.')));
+      return;
+    }
+    setState(() {
+      DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: selectedMember));
+      //comments.add(Comment(text: value, bookId: book.id!, memberId: selectedMember));
+    });
+  }
+
   Widget commentField(){
     final commentController = TextEditingController();
 
@@ -228,14 +239,17 @@ class _MyHomePageState extends State<MyHomePage> {
       margin: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        //color: Color(members.firstWhere((element) => element.id == book.memberId).color),
+        //color: Color(members.firstWhere((element) => element.id == selectedMember).color),
       ),
       child: TextField(
+        onSubmitted: (value) => addComment(value),
         controller: commentController,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           labelText: 'Comment',
-          suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: () {  },),
+          suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text),),
           prefixIcon: Container(
             margin: const EdgeInsets.only(right: 10),
             decoration: const BoxDecoration(
@@ -244,6 +258,7 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             ),
             child: DropdownMenu(
+              initialSelection: selectedMember,
               inputDecorationTheme: InputDecorationTheme(
                 border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15)),
                 //focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -257,10 +272,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 (index) {
                   return DropdownMenuEntry(
                     label: members[index].name,
-                    value: index,
+                    value: index+1,
                   );
                 }
-              )
+              ),
+              onSelected: (value) {
+                setState(() {
+                  selectedMember = value ?? 1;
+                });
+              },
             )
           )
         ),
@@ -272,7 +292,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       children: [
         Expanded(
-          flex: 5,
+          flex: 3,
           child: ListView.builder(
             itemCount: comments.length,
             itemBuilder: (BuildContext context, int i) {
