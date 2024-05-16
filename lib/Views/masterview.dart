@@ -73,9 +73,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void showCommentDialog(){
     showDialog(context: context, builder: (builder){
       return AlertDialog(
-        insetPadding: EdgeInsets.all(15),
+        insetPadding: const EdgeInsets.all(15),
         scrollable: true,
-        contentPadding: EdgeInsets.all(10),
+        contentPadding: const EdgeInsets.all(5),
         content: StatefulBuilder(
           builder: (context, setState) {
             return SizedBox(
@@ -156,8 +156,6 @@ class _MyHomePageState extends State<MyHomePage> {
           width: MediaQuery.of(context).size.width*0.9,
           child: progressIndicator(progress),
         )
-        
-        
       ]
     );
   }
@@ -241,7 +239,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Container(
       //padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.all(10),
+      margin: EdgeInsets.only(bottom: aspRat < 1 ? 50 : 10, top: 10, left: 10, right: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         //color: Color(members.firstWhere((element) => element.id == selectedMember).color),
@@ -297,7 +295,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       children: [
         Expanded(
-          flex: aspRat < 1 ? 5 : 3,
           child: ListView.builder(
             itemCount: comments.length,
             itemBuilder: (BuildContext context, int i) {
@@ -327,7 +324,12 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         ),
-        Expanded(child: commentField(setState)),
+        Expanded(
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: commentField(setState)
+          ),
+        )
       ]
     );
   }
