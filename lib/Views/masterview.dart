@@ -132,7 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
             child: const Text("Update"),
             onPressed: (){
               setState(() {
-                int nr = int.parse(controller.text);
+                int nr = int.parse(currentPageController.text);
+                nr = nr < 0 ? 0 : nr;
                 progress.page = nr > book.pages ? book.pages : nr;
                 updatePage(progress);
               });
