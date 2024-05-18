@@ -71,6 +71,10 @@ class _MyHomePageState extends State<MyHomePage> {
     if (setState != null) setState(() {comments.add(Comment(text: value, bookId: book.id!, memberId: selectedMember));});
   }
 
+  int getBookPages(){
+    return book.pages;
+  }
+
   @override
   Widget build(BuildContext context) {
     aspRat = MediaQuery.of(context).size.aspectRatio;
@@ -119,13 +123,29 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void showUpdateDialog(Progress progress){
     showDialog(context: context, builder: (builder){
-      TextEditingController controller = TextEditingController(text: progress.page.toString());
+      TextEditingController currentPageController = TextEditingController(text: progress.page.toString());
+      TextEditingController maxPagesController = TextEditingController(text: (progress.maxPages ?? book.pages).toString());
       return AlertDialog(
         title: const Text("Update page number"),
-        content: TextField(
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          controller: controller,
+        content: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: TextField(
+                decoration: const InputDecoration(labelText: 'Current page'),
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                controller: currentPageController,
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                decoration: const InputDecoration(labelText: 'Max. pages'),
+                keyboardType: TextInputType.number,
+                controller: maxPagesController,
+              )
+            )
+          ]
         ),
         actions: [
           TextButton(
@@ -135,6 +155,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 int nr = int.parse(currentPageController.text);
                 nr = nr < 0 ? 0 : nr;
                 progress.page = nr > book.pages ? book.pages : nr;
+                int maxNr = int.parse(maxPagesController.text);
+                progress.maxPages = maxNr < 0 ? 0 : maxNr;
                 updatePage(progress);
               });
               Navigator.of(context).pop();
@@ -282,15 +304,15 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         LinearProgressIndicator(
           minHeight: 20,
-          value: progress.page/book.pages,
+          value: progress.page/(progress.maxPages ?? book.pages),
           borderRadius: BorderRadius.circular(10),
           color: Color(members.firstWhere((element) => element.id == progress.memberId).color),
         ),
         Align(
-          alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/book.pages) as AlignmentGeometry,
+          alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/(progress.maxPages ?? book.pages)) as AlignmentGeometry,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(progress.page == book.pages ? 'Finished' : 'Seite ${progress.page} (${(progress.page/book.pages*100).toStringAsFixed(0)}%)')
+            child: Text(progress.page == book.pages ? 'Finished' : 'Seite ${progress.page} (${(progress.page/(progress.maxPages ?? book.pages)*100).toStringAsFixed(0)}%)')
           ),
         )
       ]
