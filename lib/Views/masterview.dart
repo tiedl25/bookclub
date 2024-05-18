@@ -324,12 +324,10 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         ),
-        Expanded(
-          child: Align(
+        Align(
             alignment: Alignment.bottomLeft,
             child: commentField(setState)
           ),
-        )
       ]
     );
   }
