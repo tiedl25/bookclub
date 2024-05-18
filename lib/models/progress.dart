@@ -5,8 +5,9 @@ class Progress{
   String? review;
   int? bookId;
   int? memberId;
+  int? maxPages;
 
-  Progress({this.id, required this.page, this.rating, this.review, this.bookId, this.memberId});
+  Progress({this.id, required this.page, this.rating, this.review, this.bookId, this.memberId, this.maxPages});
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -14,7 +15,8 @@ class Progress{
     'rating': rating,
     'review': review,
     'book': bookId,
-    'member': memberId
+    'member': memberId,
+    'maxPages': maxPages
   };
 
   factory Progress.fromMap(Map<String, dynamic> map) {
@@ -24,7 +26,8 @@ class Progress{
       rating: map['rating'],
       review: map['review'],
       bookId: map['book'],
-      memberId: map['member']
+      memberId: map['member'],
+      maxPages: map['maxPages']
     );
   }
 }
