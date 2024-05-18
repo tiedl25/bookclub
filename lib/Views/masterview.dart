@@ -213,7 +213,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return SizedBox(
       child: ListView.builder(
         physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(left: 10, right: 10),
         itemCount: snapshot.data!.length,
         itemBuilder: (context, i) {
           return aspRat < 1 ? mobileProgress(snapshot.data![i]) : desktopProgress(snapshot.data![i]);
@@ -296,6 +296,7 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(top: 10),
             itemCount: comments.length,
             itemBuilder: (BuildContext context, int i) {
               return GestureDetector(
@@ -310,7 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
                     ),
                     padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
