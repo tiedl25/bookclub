@@ -9,6 +9,7 @@ import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -133,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
               flex: 2,
               child: TextField(
                 decoration: const InputDecoration(labelText: 'Current page'),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.number,
                 autofocus: true,
                 controller: currentPageController,
@@ -141,6 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Expanded(
               child: TextField(
                 decoration: const InputDecoration(labelText: 'Max. pages'),
+                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^[1-9][0-9]*'))],
                 keyboardType: TextInputType.number,
                 controller: maxPagesController,
               )
@@ -156,7 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 nr = nr < 0 ? 0 : nr;
                 progress.page = nr > book.pages ? book.pages : nr;
                 int maxNr = int.parse(maxPagesController.text);
-                progress.maxPages = maxNr < 0 ? 0 : maxNr;
+                progress.maxPages = maxNr < 1 ? 1 : maxNr;
                 updatePage(progress);
               });
               Navigator.of(context).pop();
