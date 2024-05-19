@@ -174,7 +174,6 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(context: context, builder: (builder){
       return AlertDialog(
         insetPadding: const EdgeInsets.all(15),
-        scrollable: true,
         contentPadding: const EdgeInsets.all(5),
         content: StatefulBuilder(
           builder: (context, setState) {
@@ -379,10 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         ),
-        Align(
-            alignment: Alignment.bottomLeft,
-            child: commentField(setState)
-        ),
+        commentField(setState)
       ]
     );
   }
@@ -392,7 +388,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Container(
       //padding: const EdgeInsets.all(10),
-      margin: EdgeInsets.only(bottom: aspRat < 1 ? 50 : 10, top: 10, left: 10, right: 10),
+      margin: EdgeInsets.only(bottom: aspRat < 1 ? 10 : 10, top: 10, left: 10, right: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         //color: Color(members.firstWhere((element) => element.id == selectedMember).color),
