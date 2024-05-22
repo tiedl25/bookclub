@@ -138,5 +138,14 @@ class DatabaseHelper {
 
     return response.isNotEmpty ? List.generate(response.length, (index) => Comment.fromMap(response[index])) : [];
   }
+
+  Future<List<String>> getFinishSentences() async {
+    var response = await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return (await db.from('finishSentences').select().order('id', ascending: true));
+    });
+
+    return response.isNotEmpty ? List.generate(response.length, (index) => response[index]['text']) : [];
+  }
 }
 
