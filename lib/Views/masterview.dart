@@ -29,6 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late double aspRat;
   late double nameMaxLength;
   int selectedMember = 1;
+  List<String> finishSentences = [];
 
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
@@ -36,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
     book = await DatabaseHelper.instance.getCurrentBook();
     aspRat = MediaQuery.of(context).size.aspectRatio;
     nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
+    finishSentences = await DatabaseHelper.instance.getFinishSentences();
   }
 
   int daysLeft(){
@@ -74,6 +76,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int getBookPages(){
     return book.pages;
+  }
+
+  String randomFinishSentence(){
+    return finishSentences[Random().nextInt(finishSentences.length)];
   }
 
   @override
@@ -122,8 +128,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //Dialogs
 
-  void showUpdateDialog(Progress progress){
-    showDialog(context: context, builder: (builder){
+  showUpdateDialog(Progress progress){
+    return showDialog(context: context, builder: (builder){
       TextEditingController currentPageController = TextEditingController(text: progress.page.toString());
       TextEditingController maxPagesController = TextEditingController(text: (progress.maxPages ?? book.pages).toString());
       return AlertDialog(
@@ -154,6 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
           TextButton(
             child: const Text("Update"),
             onPressed: (){
+              int oldPage = progress.page;
               setState(() {
                 int nr = int.parse(currentPageController.text);
                 nr = nr < 0 ? 0 : nr;
@@ -162,7 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 progress.maxPages = maxNr < 1 ? 1 : maxNr;
                 updatePage(progress);
               });
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(progress.page == (progress.maxPages ?? book.pages) && progress.page != oldPage);
             }
           )
         ]
@@ -207,6 +214,15 @@ class _MyHomePageState extends State<MyHomePage> {
             child: const Text("Delete"),
           )
         ]
+      );
+    });
+  }
+
+  void showFinishDialog() {
+    showDialog(context: context, builder: (builder){
+      return AlertDialog(
+        title: const Text("Breaking news"),
+        content: Text(randomFinishSentence()),
       );
     });
   }
@@ -261,7 +277,9 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             IconButton(
               onPressed: (){
-                showUpdateDialog(progress);
+                showUpdateDialog(progress).then((value) {
+                  if (value) showFinishDialog();
+                });
               }, 
               icon: const Icon(Icons.update),
             ),
@@ -286,7 +304,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         IconButton(
           onPressed: (){
-            showUpdateDialog(progress);
+            showUpdateDialog(progress).then((value) {
+              if (value) showFinishDialog();
+            });
           }, 
           icon: const Icon(Icons.update),
         ),
