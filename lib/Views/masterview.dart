@@ -334,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> {
           alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/(progress.maxPages ?? book.pages)) as AlignmentGeometry,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(progress.page == book.pages ? 'Finished' : 'Seite ${progress.page} (${(progress.page/(progress.maxPages ?? book.pages)*100).toStringAsFixed(0)}%)')
+            child: Text(progress.page == (progress.maxPages ?? book.pages) ? 'Finished' : 'Seite ${progress.page} (${(progress.page/(progress.maxPages ?? book.pages)*100).toStringAsFixed(0)}%)')
           ),
         )
       ]
