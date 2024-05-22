@@ -164,8 +164,8 @@ class _MyHomePageState extends State<MyHomePage> {
               setState(() {
                 int nr = int.parse(currentPageController.text);
                 nr = nr < 0 ? 0 : nr;
-                progress.page = nr > book.pages ? book.pages : nr;
                 int maxNr = int.parse(maxPagesController.text);
+                progress.page = nr > maxNr ? maxNr : nr;
                 progress.maxPages = maxNr < 1 ? 1 : maxNr;
                 updatePage(progress);
               });
