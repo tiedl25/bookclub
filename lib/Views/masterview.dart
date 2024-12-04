@@ -463,8 +463,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 //focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
               ),
               menuStyle: MenuStyle(
-                shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-                backgroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.surface),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.surface),
               ),
               dropdownMenuEntries: List.generate(
                 members.length, 
