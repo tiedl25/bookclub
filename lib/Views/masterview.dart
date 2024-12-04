@@ -132,6 +132,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return showDialog(context: context, builder: (builder){
       TextEditingController currentPageController = TextEditingController(text: progress.page.toString());
       TextEditingController maxPagesController = TextEditingController(text: (progress.maxPages ?? book.pages).toString());
+
+      currentPageController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: currentPageController.text.length,
+      );
+
       return AlertDialog(
         title: const Text("Update page number"),
         content: Row(
