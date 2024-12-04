@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bookclub',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,

@@ -8,6 +8,6 @@ Color themeColor = Color.fromARGB(255, 212, 210, 185);
 
 ColorScheme colorScheme = ColorScheme.fromSeed(
   seedColor: themeColor,
-  background: backgroundColor
+  surface: backgroundColor
   
 );
