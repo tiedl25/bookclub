@@ -187,7 +187,28 @@ class _MyHomePageState extends State<MyHomePage> {
             return SizedBox(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              child: commentBoard(setState),
+              child: Stack(
+                children: [
+                  commentBoard(setState),
+                  Positioned(
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withOpacity(0.3),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ),
+                ]
+              ),
             );
           }
         )
@@ -436,8 +457,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 //focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
               ),
               menuStyle: MenuStyle(
-                shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-                backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.background),
+                shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                backgroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.surface),
               ),
               dropdownMenuEntries: List.generate(
                 members.length, 
