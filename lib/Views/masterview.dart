@@ -441,15 +441,18 @@ class _MyHomePageState extends State<MyHomePage> {
         //color: Color(members.firstWhere((element) => element.id == selectedMember).color),
       ),
       child: TextField(
+        maxLines: 5,
+        minLines: 1,
         onSubmitted: (value) => addComment(value, setState),
         controller: commentController,
         decoration: InputDecoration(
           filled: true,
           fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
           labelText: 'Comment',
           suffixIcon: IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text, setState),),
           prefixIcon: Container(
+            width: max(members.map((e) => e.name.length).toList().reduce(max)*10, nameMaxLength),
             margin: const EdgeInsets.only(right: 10),
             decoration: const BoxDecoration(
               border: Border(
@@ -457,6 +460,9 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             ),
             child: DropdownMenu(
+              textStyle: const TextStyle(fontSize: 0),
+              trailingIcon: Text(members[selectedMember-1].name),
+              selectedTrailingIcon: Text(members[selectedMember-1].name),
               initialSelection: selectedMember,
               inputDecorationTheme: InputDecorationTheme(
                 border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15)),
@@ -480,7 +486,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedMember = value ?? 1;
                 });
               },
-            )
+            ),
           )
         ),
       )
