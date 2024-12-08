@@ -431,27 +431,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget commentDropDown([void Function(VoidCallback fn)? setState]){
-    return Container(
-      width: 50,//max(members.map((e) => e.name.length).toList().reduce(max)*10, nameMaxLength),
-      margin: const EdgeInsets.only(right: 10),
-      decoration: const BoxDecoration(
-        border: Border(
-          //right: BorderSide(width: 1, color: Colors.black38),
-          //top: BorderSide(width: 1, color: Colors.black38)
-        )
-      ),
-      child: DropdownMenu(
+    return DropdownMenu(
+        width: 50,
         textStyle: const TextStyle(fontSize: 0),
-        //trailingIcon: Text(members[selectedMember-1].name),
-        //selectedTrailingIcon: Text(members[selectedMember-1].name),
         initialSelection: selectedMember,
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15)),
-          //focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
         ),
         menuStyle: MenuStyle(
-          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.surface),
+          fixedSize: WidgetStateProperty.all(Size.fromWidth(nameMaxLength)),
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+          backgroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.surface),
         ),
         dropdownMenuEntries: List.generate(
           members.length, 
@@ -467,7 +457,6 @@ class _MyHomePageState extends State<MyHomePage> {
             selectedMember = value ?? 1;
           });
         },
-      ),
     );
   }
   bool tapIn = false;
@@ -491,7 +480,7 @@ class _MyHomePageState extends State<MyHomePage> {
             onSubmitted: (value) => addComment(value, setState),
             controller: commentController,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.only(left: /*max(members.map((e) => e.name.length).toList().reduce(max)*10, nameMaxLength)+*/50, right: 10, top: 10, bottom: 10),
+              contentPadding: const EdgeInsets.only(left: 50, right: 10, top: 10, bottom: 10),
               filled: true,
               fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -504,7 +493,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              tapIn ? Container() : commentDropDown(setState), 
+              commentDropDown(setState), 
               IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text, setState),),
             ]
           ),
