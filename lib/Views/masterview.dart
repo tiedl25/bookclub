@@ -86,6 +86,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     aspRat = MediaQuery.of(context).size.aspectRatio;
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: aspRat < 1 ? FloatingActionButton(
+        mini: true,
+        //alignment: Alignment.bottomCenter,
+                    onPressed: (){
+                      showCommentDialog();
+                    },
+                    child: const Icon(Icons.comment)
+                  ) : null,
       body: Center(
         child: FutureBuilder(
           future: getProgress(),
@@ -93,31 +102,29 @@ class _MyHomePageState extends State<MyHomePage> {
             if (!snapshot.hasData){
               return const Center(child: CircularProgressIndicator());
             }
-            return Column(
+            return Stack(
               children: [
-                const Spacer(flex: 1),
-                bookCarousel(),
-                const Spacer(flex: 1),
-                AutoSizeText('${book.name} von ${book.author} - ${book.pages} Seiten', textAlign: TextAlign.center, minFontSize: 18,),
-                if (book.to.difference(DateTime.now()).inDays > 0) 
-                  AutoSizeText('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
-                if (book.to.difference(DateTime.now()).inDays > 0) 
-                  AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
-                const Divider(),
-                Expanded(flex: 20, child: 
-                  Row(
-                    children: [
-                      Expanded(flex: 20, child: memberBoard(snapshot)),
-                      if (aspRat > 1) Expanded(flex: 10, child: commentBoard()),
-                    ]
-                  ),
+                Column(
+                  children: [
+                    const Spacer(flex: 1),
+                    bookCarousel(),
+                    const Spacer(flex: 1),
+                    AutoSizeText('${book.name} von ${book.author} - ${book.pages} Seiten', textAlign: TextAlign.center, minFontSize: 18,),
+                    if (book.to.difference(DateTime.now()).inDays > 0) 
+                      AutoSizeText('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
+                    if (book.to.difference(DateTime.now()).inDays > 0) 
+                      AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
+                    const Divider(),
+                    Expanded(flex: 20, child: 
+                      Row(
+                        children: [
+                          Expanded(flex: 20, child: memberBoard(snapshot)),
+                          if (aspRat > 1) Expanded(flex: 10, child: commentBoard()),
+                        ]
+                      ),
+                    ),
+                  ]
                 ),
-                if (aspRat < 1) IconButton(
-                  onPressed: (){
-                    showCommentDialog();
-                  },
-                  icon: const Icon(Icons.comment)
-                )
               ]
             );
           },
@@ -284,8 +291,9 @@ class _MyHomePageState extends State<MyHomePage> {
       child: ListView.builder(
         physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
         padding: const EdgeInsets.only(left: 10, right: 10),
-        itemCount: snapshot.data!.length,
+        itemCount: snapshot.data!.length+1,
         itemBuilder: (context, i) {
+          if (i == snapshot.data!.length) return const SizedBox(height: 70);
           return aspRat < 1 ? mobileProgress(snapshot.data![i]) : desktopProgress(snapshot.data![i]);
         }
       ),
