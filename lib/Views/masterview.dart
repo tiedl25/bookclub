@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:bookclub/colors.dart';
+import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/database.dart';
+import 'package:bookclub/dialogs/statisticsDialog.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
@@ -24,6 +25,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<Member> members;
   late List<Book> books;
   late List<Comment> comments;
+  late List<Progress> progress;
   late Book book;
   bool initItems = false;
   late double aspRat;
@@ -41,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   int daysLeft(){
-    return book.to.difference(DateTime.now()).inDays;
+    return book.to.difference(DateTime.now()).inDays+1;
   }
 
   int minimumPages(){
@@ -86,15 +88,31 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     aspRat = MediaQuery.of(context).size.aspectRatio;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: aspRat < 1 ? FloatingActionButton(
-        mini: true,
-        //alignment: Alignment.bottomCenter,
-                    onPressed: (){
-                      showCommentDialog();
-                    },
-                    child: const Icon(Icons.comment)
-                  ) : null,
+      floatingActionButton: aspRat < 1 ? Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(flex: 3,),
+          FloatingActionButton(
+            mini: true,
+            //alignment: Alignment.bottomCenter,
+            onPressed: (){
+              showCommentDialog();
+            },
+            child: const Icon(Icons.comment)
+          ),
+          const Spacer(flex: 1,),
+          FloatingActionButton(
+            mini: true,
+            //alignment: Alignment.bottomCenter,
+            onPressed: (){
+              showStatisticsDialog();
+            },
+            child: const Icon(Icons.bar_chart)
+          ),
+          const Spacer(flex: 3,)
+        ]) : null,
       body: Center(
         child: FutureBuilder(
           future: getProgress(),
@@ -102,18 +120,28 @@ class _MyHomePageState extends State<MyHomePage> {
             if (!snapshot.hasData){
               return const Center(child: CircularProgressIndicator());
             }
-            return Stack(
-              children: [
-                Column(
+            return Column(
                   children: [
                     const Spacer(flex: 1),
-                    bookCarousel(),
-                    const Spacer(flex: 1),
-                    AutoSizeText('${book.name} von ${book.author} - ${book.pages} Seiten', textAlign: TextAlign.center, minFontSize: 18,),
-                    if (book.to.difference(DateTime.now()).inDays > 0) 
-                      AutoSizeText('Du hast noch ${daysLeft()} Tage um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
-                    if (book.to.difference(DateTime.now()).inDays > 0) 
-                      AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 30, 
+                          child: Column(
+                            children: [
+                              bookCarousel(),
+                              //const Spacer(flex: 1),
+                              AutoSizeText('${book.name} von ${book.author} - ${book.pages} Seiten', textAlign: TextAlign.center, minFontSize: 18,),
+                              if (daysLeft() > 0) AutoSizeText('Du hast noch ${daysLeft()} Tag${daysLeft() > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
+                              if (daysLeft() > 0) AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
+                            ]
+                          )
+                        ),
+                        if (aspRat > 1) Expanded(flex: 5, child: StatisticsDialog(device: Device.desktop, members: members, books: books)), const Spacer(flex: 1,)
+                      ]
+                    ),
+                    
                     const Divider(),
                     Expanded(flex: 20, child: 
                       Row(
@@ -124,8 +152,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                   ]
-                ),
-              ]
             );
           },
         )    
@@ -187,6 +213,12 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ]
       );
+    });
+  }
+
+  void showStatisticsDialog(){
+    showDialog(context: context, builder: (builder){
+      return StatisticsDialog(device: Device.phone, members: members, books: books);
     });
   }
 
@@ -382,7 +414,7 @@ class _MyHomePageState extends State<MyHomePage> {
         7, 
         (index) {
           return InkWell(
-            child: Icon(Icons.book, color: progress.rating == null || progress.rating! < index + 1 ? bookDefaultColor : bookSelectedColor),
+            child: Icon(Icons.book, color: progress.rating == null || progress.rating! < index + 1 ? SpecialColors.bookDefaultColor : SpecialColors.bookSelectedColor),
             onTap: () {
               if (progress.rating == index+1){
                 progress.rating = 0;

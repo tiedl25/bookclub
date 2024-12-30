@@ -100,10 +100,10 @@ class DatabaseHelper {
     return response.isNotEmpty ? List.generate(response.length, (index) => Member.fromMap(response[index])) : [];
   }
 
-  Future<List<Progress>> getProgressList(int bookId) async {
+  Future<List<Progress>> getProgressList([int? bookId]) async {
     var response = await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
-      return (await db.from('progress').select().eq('book', bookId).order('id', ascending: true));
+      return bookId == null ? (await db.from('progress').select().order('id', ascending: true)) : (await db.from('progress').select().eq('book', bookId).order('id', ascending: true));
     });
 
     return response.isNotEmpty ? List.generate(response.length, (index) => Progress.fromMap(response[index])) : [];

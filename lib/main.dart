@@ -1,4 +1,5 @@
-import 'package:bookclub/colors.dart';
+import 'package:bookclub/resources/colors.dart';
+import 'package:bookclub/resources/strings.dart';
 import 'package:flutter/material.dart';
 import 'Views/masterview.dart';
 
@@ -14,13 +15,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Bookclub',
+      title: Strings.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: Strings.appDesription),
     );
   }
 }
