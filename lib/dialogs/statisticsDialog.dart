@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
@@ -38,8 +40,10 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
     for (var member in widget.members){
       var memberProgress = progress.where((element) => element.memberId == member.id);
       if (memberProgress.isNotEmpty){
-        final test = memberProgress.reduce((element, value) => Progress(page: element.page + value.page, maxPages: (element.maxPages ?? widget.books[element.bookId!-1].pages) + (value.maxPages ?? widget.books[value.bookId!-1].pages)));
-        progressByMember[member.name] = test.page / test.maxPages!;
+        final parts = memberProgress.map((e) => e.page / (e.maxPages ?? widget.books[e.bookId!-1].pages)).toList();
+        double overalProgress = parts.reduce((element, value) => element + value) / parts.length;
+        //final test = memberProgress.reduce((element, value) => Progress(page: element.page + value.page, maxPages: (element.maxPages ?? widget.books[element.bookId!-1].pages) + (value.maxPages ?? widget.books[value.bookId!-1].pages)));
+        progressByMember[member.name] = overalProgress;//test.page / test.maxPages!;
       }
     }
     return Map.fromEntries(progressByMember.entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
