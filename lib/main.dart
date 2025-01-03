@@ -15,7 +15,7 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-ThemeMode currentTheme = ThemeMode.light;
+ThemeMode currentTheme = ThemeMode.system;
 
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
