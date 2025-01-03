@@ -156,7 +156,7 @@ class _CommentDialogState extends State<CommentDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(comments[i].text, style: const TextStyle(fontSize: 15)),
+                        SelectableText(comments[i].text, style: const TextStyle(fontSize: 15)),
                         Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
                       ],
                     )
