@@ -8,9 +8,16 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+ThemeMode currentTheme = ThemeMode.light;
+
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -18,10 +25,10 @@ class MyApp extends StatelessWidget {
       title: CustomStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: colorScheme,
+        colorScheme: currentTheme == ThemeMode.light ? lighttheme : darktheme,
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: CustomStrings.appDesription),
+      home: MyHomePage(title: CustomStrings.appDesription, changeTheme: (value) => setState(() => currentTheme = value),),
     );
   }
 }

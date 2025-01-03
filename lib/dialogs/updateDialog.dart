@@ -69,7 +69,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
         ]
       ),
       submitButton: TextButton(
-        child: const Text("Update"),
+        child: Text("Update", style: TextStyle(fontSize: Theme.of(context).textTheme.titleMedium!.fontSize)),
         onPressed: () {
           int oldPage = progress.page;
           int nr = int.parse(currentPageController.text);

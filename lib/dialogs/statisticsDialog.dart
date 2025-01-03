@@ -53,7 +53,7 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
     
     return Column(
       children: [
-        const Text(CustomStrings.statisticsTitle, style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text(CustomStrings.statisticsTitle, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ListView.builder(
           shrinkWrap: true,
           itemCount: progressByMember.length,
@@ -70,8 +70,8 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(e.key, style: const TextStyle(color: Colors.black, fontSize: 16)),
-                      Text("${(e.value*100).toStringAsFixed(0)} %", style: const TextStyle(color: Colors.black, fontSize: 16))
+                      Text(e.key, style: const TextStyle(fontSize: 16)),
+                      Text("${(e.value*100).toStringAsFixed(0)} %", style: const TextStyle(fontSize: 16))
                     ]
                   )
                 )

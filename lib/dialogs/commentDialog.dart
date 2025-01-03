@@ -3,6 +3,7 @@ import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/dialogs/dialog.dart';
+import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:flutter/material.dart' hide Dialog;
 
@@ -58,14 +59,13 @@ class _CommentDialogState extends State<CommentDialog> {
               );
               Navigator.pop(context);
             },
-            child: const Text("Delete"),
+            child: Text("Delete", style: TextStyle(fontSize: Theme.of(context).textTheme.titleMedium!.fontSize)),
           )
       );
     });
   }
 
   Widget commentField(){
-    
     final commentController = TextEditingController();
 
     return Container(
@@ -86,15 +86,17 @@ class _CommentDialogState extends State<CommentDialog> {
               contentPadding: const EdgeInsets.only(left: 50, right: 10, top: 10, bottom: 10),
               filled: true,
               fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: SpecialColors.commentTextcolor)),
               labelText: members[selectedMember-1].name,
+              labelStyle: const TextStyle(color: SpecialColors.commentTextcolor),
             ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               commentDropDown(setState), 
-              IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text),),
+              IconButton(icon: const Icon(Icons.send, color: SpecialColors.commentTextcolor), onPressed: () => addComment(commentController.text),),
             ]
           ),
         ]
@@ -104,30 +106,32 @@ class _CommentDialogState extends State<CommentDialog> {
 
   Widget commentDropDown([void Function(VoidCallback fn)? setState]){
     return DropdownMenu(
-        width: 50,
-        textStyle: const TextStyle(fontSize: 0),
-        initialSelection: selectedMember,
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15)),
-        ),
-        menuStyle: MenuStyle(
-          fixedSize: WidgetStateProperty.all(Size.fromWidth(nameMaxLength)),
-          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-        ),
-        dropdownMenuEntries: List.generate(
-          members.length, 
-          (index) {
-            return DropdownMenuEntry(
-              label: members[index].name,
-              value: index+1,
-            );
-          }
-        ),
-        onSelected: (value) {
-          (setState ?? this.setState)(() {
-            selectedMember = value ?? 1;
-          });
-        },
+      trailingIcon: const Icon(Icons.person, color: SpecialColors.commentTextcolor),
+      selectedTrailingIcon: const Icon(Icons.person, color: SpecialColors.commentTextcolor),
+      width: 50,
+      textStyle: const TextStyle(fontSize: 0),
+      initialSelection: selectedMember,
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15),),
+      ),
+      menuStyle: MenuStyle(
+        fixedSize: WidgetStateProperty.all(Size.fromWidth(nameMaxLength)),
+        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+      ),
+      dropdownMenuEntries: List.generate(
+        members.length, 
+        (index) {
+          return DropdownMenuEntry(
+            label: members[index].name,
+            value: index+1,
+          );
+        }
+      ),
+      onSelected: (value) {
+        (setState ?? this.setState)(() {
+          selectedMember = value ?? 1;
+        });
+      },
     );
   }
 
@@ -156,8 +160,8 @@ class _CommentDialogState extends State<CommentDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SelectableText(comments[i].text, style: const TextStyle(fontSize: 15)),
-                        Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
+                        SelectableText(comments[i].text, style: const TextStyle(fontSize: 15, color: SpecialColors.commentTextcolor)),
+                        Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor)),
                       ],
                     )
                   ),

@@ -14,8 +14,9 @@ class CustomDialog extends StatelessWidget {
   final bool fullWindow;
   final Widget? submitButton;
   final double padding;
+  late BuildContext context;
 
-  const CustomDialog({
+  CustomDialog({
     super.key,
     required this.content,
     this.title,
@@ -29,17 +30,19 @@ class CustomDialog extends StatelessWidget {
       mainAxisSize: fullWindow ? MainAxisSize.max : MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (title != null) DefaultTextStyle(style: const TextStyle(fontSize: 25), child: title!),
+        if (title != null) DefaultTextStyle(style: Theme.of(context).textTheme.titleLarge!, child: title!),
         if (title != null) SizedBox(height: padding),
         Flexible(child: content),
         if (submitButton != null) SizedBox(height: padding),
-        if (submitButton != null) DefaultTextStyle(style: const TextStyle(fontSize: 20), child: submitButton!),
+        if (submitButton != null) submitButton!,
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    this.context = context;
+
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
       child: Dialog(

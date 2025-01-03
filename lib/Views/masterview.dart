@@ -16,9 +16,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key, required this.title, required this.changeTheme});
 
   final String title;
+  final Function changeTheme;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -49,9 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
     aspRat = MediaQuery.of(context).size.aspectRatio;
     nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
     finishSentences = await DatabaseHelper.instance.getFinishSentences();
-  }
-
-  
+  }  
 
   Future<List<Progress>> getProgress() async {
     if (!initItems){
@@ -142,7 +141,22 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           const Spacer(flex: 3,)
         ]) : null,
-      body: content(),
+      body: Stack(
+        children: [
+          content(),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: IconButton(
+              padding: const EdgeInsets.all(10),
+              icon: Theme.of(context).brightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+              onPressed: (){
+                widget.changeTheme((Theme.of(context).brightness == Brightness.dark) ? ThemeMode.light : ThemeMode.dark);
+              },
+            )
+          )
+        ]
+      )
     );
   }
 
