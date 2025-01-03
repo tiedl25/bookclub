@@ -1,16 +1,19 @@
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bookclub/dialogs/dialog.dart';
+import 'package:bookclub/dialogs/updateDialog.dart';
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/dialogs/statisticsDialog.dart';
+import 'package:bookclub/dialogs/commentDialog.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
+import 'package:bookclub/resources/strings.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -25,7 +28,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<Member> members;
   late List<Book> books;
   late List<Comment> comments;
-  late List<Progress> progress;
+  late List<Progress> progressList;
   late Book book;
   bool initItems = false;
   late double aspRat;
@@ -50,10 +53,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return (book.pages/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
   }
 
-  Future<void> updatePage(Progress progress) async {
-    DatabaseHelper.instance.updateProgress(progress);
-  }
-
   Future<List<Progress>> getProgress() async {
     if (!initItems){
       await init();
@@ -62,22 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
     comments = await DatabaseHelper.instance.getComments(book.id!);
     List<Progress> progress = await DatabaseHelper.instance.getProgressList(book.id!);
     return progress;
-  }
-
-  void addComment(String value, [void Function(VoidCallback fn)? setState]){
-    if(value == ''){
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a comment.')));
-      return;
-    }
-    this.setState(() {
-      DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: selectedMember));
-    });
-    
-    if (setState != null) setState(() {comments.add(Comment(text: value, bookId: book.id!, memberId: selectedMember));});
-  }
-
-  int getBookPages(){
-    return book.pages;
   }
 
   String randomFinishSentence(){
@@ -147,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Row(
                         children: [
                           Expanded(flex: 20, child: memberBoard(snapshot)),
-                          if (aspRat > 1) Expanded(flex: 10, child: commentBoard()),
+                          if (aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
                         ]
                       ),
                     ),
@@ -161,58 +144,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //Dialogs
 
-  showUpdateDialog(Progress progress){
+  Future<dynamic> showUpdateDialog(Progress progress){
     return showDialog(context: context, builder: (builder){
-      TextEditingController currentPageController = TextEditingController(text: progress.page.toString());
-      TextEditingController maxPagesController = TextEditingController(text: (progress.maxPages ?? book.pages).toString());
-
-      currentPageController.selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: currentPageController.text.length,
-      );
-
-      return AlertDialog(
-        title: const Text("Update page number"),
-        content: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: TextField(
-                decoration: const InputDecoration(labelText: 'Current page'),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                controller: currentPageController,
-              ),
-            ),
-            Expanded(
-              child: TextField(
-                decoration: const InputDecoration(labelText: 'Max. pages'),
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^[1-9][0-9]*'))],
-                keyboardType: TextInputType.number,
-                controller: maxPagesController,
-              )
-            )
-          ]
-        ),
-        actions: [
-          TextButton(
-            child: const Text("Update"),
-            onPressed: (){
-              int oldPage = progress.page;
-              setState(() {
-                int nr = int.parse(currentPageController.text);
-                nr = nr < 0 ? 0 : nr;
-                int maxNr = int.parse(maxPagesController.text);
-                progress.page = nr > maxNr ? maxNr : nr;
-                progress.maxPages = maxNr < 1 ? 1 : maxNr;
-                updatePage(progress);
-              });
-              Navigator.of(context).pop(progress.page == (progress.maxPages ?? book.pages) && progress.page != oldPage);
-            }
-          )
-        ]
-      );
+      return UpdateDialog(book: book, progress: progress, updateProgress: (newProgress) => setState(() {
+        progress = newProgress;
+      }));
     });
   }
 
@@ -224,70 +160,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void showCommentDialog(){
     showDialog(context: context, builder: (builder){
-      return AlertDialog(
-        insetPadding: const EdgeInsets.all(15),
-        contentPadding: const EdgeInsets.all(5),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return SizedBox(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: Stack(
-                children: [
-                  commentBoard(setState),
-                  Positioned(
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ),
-                ]
-              ),
-            );
-          }
-        )
-      );
-    });
-  }
-
-  void showDeleteDialog(Comment comment, [void Function(VoidCallback fn)? setState]) {
-    showDialog(context: context, builder: (builder){
-      return AlertDialog(
-        title: const Text("Delete comment"),
-        content: const Text("Are you sure you want to delete this comment?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: (){
-              this.setState(() { DatabaseHelper.instance.deleteComment(comment.id!); });
-              if (setState != null) setState(() {comments.remove(comment);});
-              Navigator.pop(context);
-            },
-            child: const Text("Delete"),
-          )
-        ]
-      );
+      return CommentDialog(device: Device.phone, members: members, book: book, comments: comments, nameMaxLength: nameMaxLength,);
     });
   }
 
   void showFinishDialog() {
     showDialog(context: context, builder: (builder){
-      return AlertDialog(
-        title: const Text("Breaking news"),
+      return CustomDialog(
+        title: const Text(CustomStrings.finishDialogTitle),
         content: Text(randomFinishSentence()),
       );
     });
@@ -326,7 +206,8 @@ class _MyHomePageState extends State<MyHomePage> {
         itemCount: snapshot.data!.length+1,
         itemBuilder: (context, i) {
           if (i == snapshot.data!.length) return const SizedBox(height: 70);
-          return aspRat < 1 ? mobileProgress(snapshot.data![i]) : desktopProgress(snapshot.data![i]);
+          progressList = snapshot.data!;
+          return aspRat < 1 ? mobileProgress(progressList[i]) : desktopProgress(progressList[i]);
         }
       ),
     );
@@ -427,118 +308,6 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           );
         }
-      )
-    );
-  }
-
-  Widget commentBoard([void Function(VoidCallback fn)? setState]){
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-            padding: const EdgeInsets.only(top: 10),
-            itemCount: comments.length,
-            itemBuilder: (BuildContext context, int i) {
-              return GestureDetector(
-                onLongPress: () {
-                  showDeleteDialog(comments[i], setState);
-                },
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
-                    ),
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(comments[i].text, style: const TextStyle(fontSize: 15)),
-                        Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10)),
-                      ],
-                    )
-                  ),
-                )
-              );
-            },
-          ),
-        ),
-        commentField(setState)
-      ]
-    );
-  }
-
-  Widget commentDropDown([void Function(VoidCallback fn)? setState]){
-    return DropdownMenu(
-        width: 50,
-        textStyle: const TextStyle(fontSize: 0),
-        initialSelection: selectedMember,
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15)),
-        ),
-        menuStyle: MenuStyle(
-          fixedSize: WidgetStateProperty.all(Size.fromWidth(nameMaxLength)),
-          shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-          backgroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.surface),
-        ),
-        dropdownMenuEntries: List.generate(
-          members.length, 
-          (index) {
-            return DropdownMenuEntry(
-              label: members[index].name,
-              value: index+1,
-            );
-          }
-        ),
-        onSelected: (value) {
-          (setState ?? this.setState)(() {
-            selectedMember = value ?? 1;
-          });
-        },
-    );
-  }
-  bool tapIn = false;
-  Widget commentField([void Function(VoidCallback fn)? setState]){
-    
-    final commentController = TextEditingController();
-
-    return Container(
-      //padding: const EdgeInsets.all(10),
-      margin: EdgeInsets.only(bottom: aspRat < 1 ? 10 : 10, top: 10, left: 10, right: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        //color: Color(members.firstWhere((element) => element.id == selectedMember).color),
-      ),
-      child: Stack(
-        alignment: Alignment.bottomLeft,
-        children: [
-          TextField(
-            maxLines: 5,
-            minLines: 1,
-            onSubmitted: (value) => addComment(value, setState),
-            controller: commentController,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.only(left: 50, right: 10, top: 10, bottom: 10),
-              filled: true,
-              fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-              labelText: members[selectedMember-1].name,
-              //suffixIcon: 
-              
-              //prefixIcon: commentDropDown()
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              commentDropDown(setState), 
-              IconButton(icon: const Icon(Icons.send), onPressed: () => addComment(commentController.text, setState),),
-            ]
-          ),
-        ]
       )
     );
   }

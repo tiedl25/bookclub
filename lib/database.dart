@@ -117,9 +117,9 @@ class DatabaseHelper {
   }
 
   addComment(Comment comment) async {
-    await lock.synchronized(() async {
+    return await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
-      return await db.from('comments').insert(comment.toMap());
+      return await db.from('comments').insert(comment.toMap()).select();
     });
   }
 

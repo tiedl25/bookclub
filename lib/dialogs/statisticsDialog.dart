@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
@@ -8,11 +6,6 @@ import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:flutter/material.dart' hide Dialog;
-
-enum Device {
-  phone,
-  desktop,
-}
 
 class StatisticsDialog extends StatefulWidget {
   const StatisticsDialog({super.key, required this.device, required this.members, required this.books});
@@ -60,7 +53,7 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
     
     return Column(
       children: [
-        const Text(Strings.statisticsTitle, style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+        const Text(CustomStrings.statisticsTitle, style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
         ListView.builder(
           shrinkWrap: true,
           itemCount: progressByMember.length,
@@ -91,8 +84,8 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
   }
 
   Widget phone(){
-    return Dialog(
-      child: Container(
+    return CustomDialog(
+      content: Container(
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
