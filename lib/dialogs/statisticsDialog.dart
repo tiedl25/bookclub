@@ -49,7 +49,21 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
       const Icon(Icons.star, color: SpecialColors.gold, size: 40),
       Container(padding: const EdgeInsets.symmetric(horizontal: 5), child: const Icon(Icons.star, color: SpecialColors.silver, size: 30)),
       Container(padding: const EdgeInsets.symmetric(horizontal: 7.5), child: const Icon(Icons.star, color: SpecialColors.bronze, size: 25)),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Icon(Icons.book, color: SpecialColors.bookSelectedColor, size: 20))
     ];
+
+    int iconIndex=0;
+    final memberIcons = [];
+
+    for (var i = 0; i < progressByMember.length; i++){
+      if (i == 0) memberIcons.add(icons[0]);
+      else if (progressByMember[i].value == progressByMember[i-1].value || iconIndex > 2){
+        memberIcons.add(icons[iconIndex]);
+      } else {
+        memberIcons.add(icons[iconIndex+1]);
+        if (iconIndex<3) iconIndex++;
+      }
+    }
     
     return Column(
       children: [
@@ -63,8 +77,7 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
             return Row(
               mainAxisAlignment: MainAxisAlignment.start, 
               children: [
-                if (index < 3) icons[index]
-                else Container(padding: const EdgeInsets.symmetric(horizontal: 10), child: Icon(Icons.book, color: SpecialColors.bookSelectedColor, size: 20)),
+                memberIcons[index],
                 const SizedBox(width: 5),
                 Expanded(
                   child: Row(
