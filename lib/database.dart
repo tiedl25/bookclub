@@ -55,20 +55,16 @@ class DatabaseHelper {
     return response.isNotEmpty ? List.generate(response.length, (index) => Book.fromMap(response[index])) : [];
   }
 
-  Future<Book> getCurrentBook() async {
-    var response = await lock.synchronized(() async {
+  Future<Book?> getCurrentBook() async {
+    return await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
 
       DateTime now = DateTime.now();
 
-      return (await db.from('books').select().gte('to', now.toIso8601String()).lte('from', now.toIso8601String()))[0];
-    });
+      final currentBook = (await db.from('books').select().gte('to', now.toIso8601String()).lte('from', now.toIso8601String()));
 
-    if (response.isNotEmpty) {
-      return Book.fromMap(response);
-    } else {
-      throw Exception('Book not found');
-    }
+      return currentBook.isNotEmpty ? Book.fromMap(currentBook[0]) : null;
+    });
   }
 
   addMember(Member member) async {

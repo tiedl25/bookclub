@@ -39,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
     books = await DatabaseHelper.instance.getBookList();
-    book = await DatabaseHelper.instance.getCurrentBook();
+    book = (await DatabaseHelper.instance.getCurrentBook()) ?? books.last;
     aspRat = MediaQuery.of(context).size.aspectRatio;
     nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
     finishSentences = await DatabaseHelper.instance.getFinishSentences();
