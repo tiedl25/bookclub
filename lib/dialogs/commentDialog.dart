@@ -135,6 +135,29 @@ class _CommentDialogState extends State<CommentDialog> {
     );
   }
 
+  Widget comment(Comment comment){
+    return Stack(
+        children: [
+          Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: Color(members.firstWhere((element) => element.id == comment.memberId).color),
+      ),
+      padding: const EdgeInsets.all(5),
+      margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+      child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(comment.text, style: const TextStyle(fontSize: 15, color: SpecialColors.commentTextcolor)),
+              Padding(padding: const EdgeInsets.only(right: 50), child: Text(members.firstWhere((element) => element.id == comment.memberId).name, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor))),
+            ]
+          )
+    ),
+          Positioned(right: 0, bottom: 0, child: Container(padding: const EdgeInsets.all(5), child: IconButton(onPressed: () => showDeleteDialog(comment), icon: const Icon(Icons.delete, color: SpecialColors.commentTextcolor, size: 15)))),
+        ],
+      );
+  }
+
   Widget commentBoard(){
     return Column(
       children: [
@@ -150,21 +173,7 @@ class _CommentDialogState extends State<CommentDialog> {
                 },
                 child: Align(
                   alignment: Alignment.topLeft,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Color(members.firstWhere((element) => element.id == comments[i].memberId).color),
-                    ),
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SelectableText(comments[i].text, style: const TextStyle(fontSize: 15, color: SpecialColors.commentTextcolor)),
-                        Text(members.firstWhere((element) => element.id == comments[i].memberId).name, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor)),
-                      ],
-                    )
-                  ),
+                  child: comment(comments[i]),
                 )
               );
             },
