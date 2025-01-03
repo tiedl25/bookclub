@@ -36,6 +36,12 @@ class _MyHomePageState extends State<MyHomePage> {
   int selectedMember = 1;
   List<String> finishSentences = [];
 
+  int get daysLeft => book.to.difference(DateTime.now()).inDays+1;
+  int get minimumPages => (book.pages/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
+  String get bookInfo => '${book.name} von ${book.author} - ${book.pages} Seiten';
+  String get bookDaysLeft => 'Du hast noch $daysLeft Tag${daysLeft > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!';
+  String get bookMinPages => 'Seite $minimumPages sollte jetzt schon drin sein.';
+
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
     books = await DatabaseHelper.instance.getBookList();
@@ -45,13 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
     finishSentences = await DatabaseHelper.instance.getFinishSentences();
   }
 
-  int daysLeft(){
-    return book.to.difference(DateTime.now()).inDays+1;
-  }
-
-  int minimumPages(){
-    return (book.pages/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
-  }
+  
 
   Future<List<Progress>> getProgress() async {
     if (!initItems){
@@ -65,6 +65,52 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String randomFinishSentence(){
     return finishSentences[Random().nextInt(finishSentences.length)];
+  }
+
+  Widget content(){
+    return Center(
+      child: FutureBuilder(
+        future: getProgress(),
+        builder: (BuildContext context, AsyncSnapshot<List<Progress>> snapshot) {
+          if (!snapshot.hasData){
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Column(
+                children: [
+                  const Spacer(flex: 1),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 30, 
+                        child: Column(
+                          children: [
+                            bookCarousel(),
+                            //const Spacer(flex: 1),
+                            AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
+                            if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
+                            if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
+                          ]
+                        )
+                      ),
+                      if (aspRat > 1) Expanded(flex: 5, child: StatisticsDialog(device: Device.desktop, members: members, books: books)), const Spacer(flex: 1,)
+                    ]
+                  ),
+                  
+                  const Divider(),
+                  Expanded(flex: 20, child: 
+                    Row(
+                      children: [
+                        Expanded(flex: 20, child: memberBoard(snapshot)),
+                        if (aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
+                      ]
+                    ),
+                  ),
+                ]
+          );
+        },
+      )
+    );
   }
 
   @override
@@ -96,49 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           const Spacer(flex: 3,)
         ]) : null,
-      body: Center(
-        child: FutureBuilder(
-          future: getProgress(),
-          builder: (BuildContext context, AsyncSnapshot<List<Progress>> snapshot) {
-            if (!snapshot.hasData){
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Column(
-                  children: [
-                    const Spacer(flex: 1),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 30, 
-                          child: Column(
-                            children: [
-                              bookCarousel(),
-                              //const Spacer(flex: 1),
-                              AutoSizeText('${book.name} von ${book.author} - ${book.pages} Seiten', textAlign: TextAlign.center, minFontSize: 18,),
-                              if (daysLeft() > 0) AutoSizeText('Du hast noch ${daysLeft()} Tag${daysLeft() > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!', textAlign: TextAlign.center, minFontSize: 18,),
-                              if (daysLeft() > 0) AutoSizeText('Seite ${minimumPages()} sollte jetzt schon drin sein.', textAlign: TextAlign.center, minFontSize: 18,),
-                            ]
-                          )
-                        ),
-                        if (aspRat > 1) Expanded(flex: 5, child: StatisticsDialog(device: Device.desktop, members: members, books: books)), const Spacer(flex: 1,)
-                      ]
-                    ),
-                    
-                    const Divider(),
-                    Expanded(flex: 20, child: 
-                      Row(
-                        children: [
-                          Expanded(flex: 20, child: memberBoard(snapshot)),
-                          if (aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
-                        ]
-                      ),
-                    ),
-                  ]
-            );
-          },
-        )    
-      )
+      body: content(),
     );
   }
 
