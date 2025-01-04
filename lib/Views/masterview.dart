@@ -58,8 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
       initItems = true;
     } 
     comments = await DatabaseHelper.instance.getComments(book.id!);
-    List<Progress> progress = await DatabaseHelper.instance.getProgressList(book.id!);
-    return progress;
+    progressList = await DatabaseHelper.instance.getProgressList(book.id!);
+    return progressList;
   }
 
   String randomFinishSentence(){
@@ -75,37 +75,36 @@ class _MyHomePageState extends State<MyHomePage> {
             return const Center(child: CircularProgressIndicator());
           }
           return Column(
+            children: [
+              const Spacer(flex: 1),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Spacer(flex: 1),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 30, 
-                        child: Column(
-                          children: [
-                            bookCarousel(),
-                            //const Spacer(flex: 1),
-                            AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
-                            if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
-                            if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
-                          ]
-                        )
-                      ),
-                      if (aspRat > 1) Expanded(flex: 5, child: StatisticsDialog(device: Device.desktop, members: members, books: books)), const Spacer(flex: 1,)
-                    ]
-                  ),
-                  
-                  const Divider(),
-                  Expanded(flex: 20, child: 
-                    Row(
+                  Expanded(
+                    flex: 30, 
+                    child: Column(
                       children: [
-                        Expanded(flex: 20, child: memberBoard(snapshot)),
-                        if (aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
+                        bookCarousel(),
+                        //const Spacer(flex: 1),
+                        AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
                       ]
-                    ),
+                    )
                   ),
+                  if (aspRat > 1) Expanded(flex: 5, child: StatisticsDialog(device: Device.desktop, members: members, books: books)), const Spacer(flex: 1,)
                 ]
+              ),
+              const Divider(),
+              Expanded(flex: 20, child: 
+                Row(
+                  children: [
+                    Expanded(flex: 20, child: memberBoard(progressList)),
+                    if (aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
+                  ]
+                ),
+              ),
+            ]
           );
         },
       )
@@ -216,15 +215,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget memberBoard(AsyncSnapshot<List<Progress>> snapshot){
+  Widget memberBoard(List<Progress> progressList){
     return SizedBox(
       child: ListView.builder(
         physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
         padding: const EdgeInsets.only(left: 10, right: 10),
-        itemCount: snapshot.data!.length+1,
+        itemCount: progressList.length+1,
         itemBuilder: (context, i) {
-          if (i == snapshot.data!.length) return const SizedBox(height: 70);
-          progressList = snapshot.data!;
+          if (i == progressList.length) return const SizedBox(height: 70);
           return aspRat < 1 ? mobileProgress(progressList[i]) : desktopProgress(progressList[i]);
         }
       ),

@@ -192,6 +192,8 @@ class _CommentDialogState extends State<CommentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    comments = widget.comments;
+
     return widget.device == Device.phone ? phone() : desktop();
   }
 }
