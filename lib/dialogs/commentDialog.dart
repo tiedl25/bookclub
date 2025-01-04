@@ -78,6 +78,8 @@ class _CommentDialogState extends State<CommentDialog> {
         alignment: Alignment.bottomLeft,
         children: [
           TextField(
+            style: const TextStyle(color: SpecialColors.commentTextcolor),
+            cursorColor: SpecialColors.commentTextcolor,
             maxLines: 5,
             minLines: 1,
             onSubmitted: (value) => addComment(value),
@@ -90,6 +92,7 @@ class _CommentDialogState extends State<CommentDialog> {
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: SpecialColors.commentTextcolor)),
               labelText: members[selectedMember-1].name,
               labelStyle: const TextStyle(color: SpecialColors.commentTextcolor),
+              floatingLabelStyle: const TextStyle(),
             ),
           ),
           Row(
