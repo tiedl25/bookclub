@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late double nameMaxLength;
   int selectedMember = 1;
   List<String> finishSentences = [];
+  final carouselSliderController = CarouselSliderController();
 
   int get daysLeft => book.to.difference(DateTime.now()).inDays+1;
   int get minimumPages => (book.pages/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
@@ -194,6 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget bookCarousel(){
     return CarouselSlider(
+      carouselController: carouselSliderController,
       options: CarouselOptions(
         height: MediaQuery.of(context).size.height/(aspRat<1 ? 3 : 2),
         viewportFraction: aspRat < 1 ? 0.25/aspRat : 0.4/aspRat,
@@ -209,7 +211,10 @@ class _MyHomePageState extends State<MyHomePage> {
       items: books.map((i) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: Image.network(i.image_path),
+          child: GestureDetector(
+            onTap: () => setState(() => carouselSliderController.animateToPage(i.id!-1)),
+            child: Image.network(i.image_path)
+          ),
         );
       }).toList(),
     );
