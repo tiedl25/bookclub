@@ -49,7 +49,7 @@ class CustomDialog extends StatelessWidget {
         insetPadding: title == null ? const EdgeInsets.all(15) : null,
         child: SizedBox(
           height: fullWindow ? MediaQuery.of(context).size.height : null,
-          width: fullWindow ? MediaQuery.of(context).size.width : null,
+          width: fullWindow ? MediaQuery.of(context).size.width : double.minPositive,
           child: Stack(
             children: [
               Padding(
