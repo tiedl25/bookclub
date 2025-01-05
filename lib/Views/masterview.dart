@@ -247,16 +247,30 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void showDescriptionDialog(Color c){
+  void showDescriptionDialog(Color c, Book i){
     showDialog(context: context, builder: (builder){
       return CustomDialog(
         backgroundColor: bookColors[book.id],
-        content: description(c)
+        content: description(c, i)
       );
     });
   }
 
-  Widget description(Color c) => SingleChildScrollView(child: SelectableText(book.description ?? '', style: TextStyle(color: Color(c.value).computeLuminance() > 0.2 ? Colors.black : Colors.white),));
+  Widget description(Color c, Book i) => SingleChildScrollView(
+    child: SelectableText(
+      book.description ?? '', 
+      onTap: () => setState(() {
+        if(i.id == book.id){
+          aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
+        }
+        else {
+          showDescription = false;
+          carouselSliderController.animateToPage(i.id!-1);
+        }
+      }), 
+      style: TextStyle(color: Color(c.value).computeLuminance() > 0.2 ? Colors.black : Colors.white)
+    )
+  );
 
   //Widgets
 
@@ -284,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: GestureDetector(
             onTap: () => setState(() {
               if(i.id == book.id){
-                aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!) : showDescription = !showDescription;
+                aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
               }
               else {
                 showDescription = false;
@@ -294,7 +308,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: showDescription && i.id == book.id ? Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: bookColors[i.id]),
-              child: description(bookColors[i.id]!)
+              child: description(bookColors[i.id]!, i)
             ) : Image.network(i.image_path)
           ),
         );
