@@ -56,7 +56,7 @@ class CustomDialog extends StatelessWidget {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(25),
                   color: backgroundColor ?? Theme.of(context).dialogBackgroundColor,
                 ),
                 padding: EdgeInsets.all(padding), 
