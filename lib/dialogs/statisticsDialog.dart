@@ -159,6 +159,7 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
 
   Widget phone(){
     return CustomDialog(
+      padding: 5,
       fullWindow: true,
       content: Container(
         padding: const EdgeInsets.all(10),

@@ -14,6 +14,7 @@ class CustomDialog extends StatelessWidget {
   final bool fullWindow;
   final Widget? submitButton;
   final double padding;
+  final Color? backgroundColor;
   late BuildContext context;
 
   CustomDialog({
@@ -23,6 +24,7 @@ class CustomDialog extends StatelessWidget {
     this.fullWindow = false,
     this.submitButton,
     this.padding = 20,
+    this.backgroundColor,
   });
 
   Widget column(){
@@ -52,8 +54,12 @@ class CustomDialog extends StatelessWidget {
           width: fullWindow ? MediaQuery.of(context).size.width : double.minPositive,
           child: Stack(
             children: [
-              Padding(
-                padding: title == null ? const EdgeInsets.all(5) : EdgeInsets.all(padding), 
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: backgroundColor ?? Theme.of(context).dialogBackgroundColor,
+                ),
+                padding: EdgeInsets.all(padding), 
                 child: column()
               ),
               Positioned(

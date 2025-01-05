@@ -39,6 +39,8 @@ dependencies:
   supabase_flutter: ^2.5.1
   carousel_slider: ^5.0.0
   auto_size_text: ^3.0.0
+  palette_generator: any
+  image: any
 
 dev_dependencies:
   flutter_test:

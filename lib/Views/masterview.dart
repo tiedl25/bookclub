@@ -14,6 +14,9 @@ import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+import 'package:http/http.dart' as http;
+import 'package:palette_generator/palette_generator.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title, required this.changeTheme});
@@ -36,6 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late double nameMaxLength;
   int selectedMember = 1;
   List<String> finishSentences = [];
+  Map<int, Color> bookColors = {};
+  bool showDescription = false;
   final carouselSliderController = CarouselSliderController();
 
   int get daysLeft => book.to.difference(DateTime.now()).inDays+1;
@@ -51,6 +56,10 @@ class _MyHomePageState extends State<MyHomePage> {
     aspRat = MediaQuery.of(context).size.aspectRatio;
     nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
     finishSentences = await DatabaseHelper.instance.getFinishSentences();
+    
+    for (Book b in books) {
+      bookColors[b.id!] = await getDominantColor(b.image_path) ?? Colors.white;
+    }
   }  
 
   Future<List<Progress>> getProgress() async {
@@ -65,6 +74,53 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String randomFinishSentence(){
     return finishSentences[Random().nextInt(finishSentences.length)];
+  }
+
+  Future<Color?> getDominantColor(String imagePath) async {
+    final response = await http.get(Uri.parse(imagePath));
+
+    if (response.statusCode != 200) {
+      return Colors.black;
+    }
+
+    final imageProvider = Image.memory(response.bodyBytes).image;
+
+    // Generate a palette from the image
+    final paletteGenerator = await PaletteGenerator.fromImageProvider(imageProvider);
+
+    // Return the dominant color
+    return paletteGenerator.dominantColor?.color;
+  }
+
+  Future<Color> getImageColor(String imageFile) async {
+    final response = await http.get(Uri.parse(imageFile));
+
+    if (response.statusCode != 200) {
+      return Colors.black;
+    }
+
+    final image = img.decodeImage(response.bodyBytes);
+
+    if (image == null) {
+      return Colors.black;
+    }
+    double red = 0;
+    double green = 0;
+    double blue = 0;
+    double count = 0;
+    for (int x = 0; x < image.width; x++) {
+      for (int y = 0; y < image.height; y++) {
+        img.Pixel pixel = image.getPixel(x, y);
+        red = red + pixel.r;
+        green = green + pixel.g;
+        blue = blue + pixel.b;
+        count = count + 1;
+      }
+    }
+    int rf = red ~/ count;
+    int gf = green ~/ count;
+    int bf = blue ~/ count;
+    return Color.fromRGBO(rf, gf, bf, 1);
   }
 
   Widget content(){
@@ -191,6 +247,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void showDescriptionDialog(Color c){
+    showDialog(context: context, builder: (builder){
+      return CustomDialog(
+        backgroundColor: bookColors[book.id],
+        content: description(c)
+      );
+    });
+  }
+
+  Widget description(Color c) => SingleChildScrollView(child: SelectableText(book.description ?? '', style: TextStyle(color: Color(c.value).computeLuminance() > 0.2 ? Colors.black : Colors.white),));
+
   //Widgets
 
   Widget bookCarousel(){
@@ -206,14 +273,29 @@ class _MyHomePageState extends State<MyHomePage> {
         enlargeCenterPage: true,
         enlargeFactor: 0.25,
         scrollDirection: Axis.horizontal,
-        onPageChanged: (index, reason) => setState(() => book = books[index]),
+        onPageChanged: (index, reason) => setState(() {
+          book = books[index];
+          showDescription = false;
+        }),
       ),
       items: books.map((i) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: GestureDetector(
-            onTap: () => setState(() => carouselSliderController.animateToPage(i.id!-1)),
-            child: Image.network(i.image_path)
+            onTap: () => setState(() {
+              if(i.id == book.id){
+                aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!) : showDescription = !showDescription;
+              }
+              else {
+                showDescription = false;
+                carouselSliderController.animateToPage(i.id!-1);
+              }
+            }),
+            child: showDescription && i.id == book.id ? Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: bookColors[i.id]),
+              child: description(bookColors[i.id]!)
+            ) : Image.network(i.image_path)
           ),
         );
       }).toList(),

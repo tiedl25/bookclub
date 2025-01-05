@@ -6,8 +6,9 @@ class Book{
   String image_path;
   DateTime from;
   DateTime to;
+  String? description;
 
-  Book({this.id, required this.name, required this.image_path, required this.author, required this.pages, required this.from, required this.to});
+  Book({this.id, required this.name, required this.image_path, required this.author, required this.pages, required this.from, required this.to, required this.description});
 
   Map<String, dynamic> toMap() => {
     'name': name,
@@ -25,6 +26,7 @@ class Book{
       pages: map['pages'],
       from: DateTime.parse(map['from']),
       to: DateTime.parse(map['to']),
+      description: map['description'],
     );
   }
 }

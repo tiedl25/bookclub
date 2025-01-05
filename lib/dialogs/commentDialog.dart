@@ -223,6 +223,7 @@ class _CommentDialogState extends State<CommentDialog> {
 
   Widget phone(){
     return CustomDialog(
+      padding: 5,
       fullWindow: true,
       content: commentBoard(),
     );
