@@ -261,7 +261,7 @@ class _MyHomePageState extends State<MyHomePage> {
       book.description ?? '', 
       onTap: () => setState(() {
         if(i.id == book.id){
-          aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
+          aspRat < 1 ? null : showDescription = !showDescription;
         }
         else {
           showDescription = false;
