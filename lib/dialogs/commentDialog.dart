@@ -26,6 +26,7 @@ class _CommentDialogState extends State<CommentDialog> {
   late List<Comment> comments;
   int selectedMember = 1;
   late final double nameMaxLength;
+  late List<bool> editComment;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _CommentDialogState extends State<CommentDialog> {
     members = widget.members;
     book = widget.book;
     comments = widget.comments;
+    editComment = List.generate(comments.length, (index) => false);
     nameMaxLength = widget.nameMaxLength;
   }
 
@@ -40,7 +42,7 @@ class _CommentDialogState extends State<CommentDialog> {
     if(value == ''){
       return;
     }
-
+    editComment.add(false);
     DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: selectedMember)).then((value) => setState(() => comments.add(Comment.fromMap(value[0]))));  
   }
 
@@ -49,18 +51,18 @@ class _CommentDialogState extends State<CommentDialog> {
       return CustomDialog(
         title: const Text(CustomStrings.deleteCommentDialogTitle),
         content: const Text(CustomStrings.deleteCommentDialogContent),
-        submitButton: 
-          TextButton(
-            onPressed: (){
-              setState(() {
-                  DatabaseHelper.instance.deleteComment(comment.id!); 
-                  comments.remove(comment);
-                }
-              );
-              Navigator.pop(context);
-            },
-            child: Text("Delete", style: TextStyle(fontSize: Theme.of(context).textTheme.titleMedium!.fontSize)),
-          )
+        submitButton: TextButton(
+          onPressed: (){
+            setState(() {
+                DatabaseHelper.instance.deleteComment(comment.id!); 
+                editComment.removeAt(comments.indexOf(comment));
+                comments.remove(comment);
+              }
+            );
+            Navigator.pop(context);
+          },
+          child: Text("Delete", style: TextStyle(fontSize: Theme.of(context).textTheme.titleMedium!.fontSize)),
+        )
       );
     });
   }
@@ -138,7 +140,11 @@ class _CommentDialogState extends State<CommentDialog> {
     );
   }
 
-  Widget comment(Comment comment){
+  Widget comment(Comment comment, int i){
+    const emptySpace = "                   ‎";
+    final commentController = TextEditingController(text: "${comment.text}$emptySpace");
+    final memberName = "${members.firstWhere((element) => element.id == comment.memberId).name}$emptySpace";
+
     return Stack(
       children: [
         Container(
@@ -151,12 +157,45 @@ class _CommentDialogState extends State<CommentDialog> {
           child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SelectableText("${comment.text}          ", style: const TextStyle(fontSize: 15, color: SpecialColors.commentTextcolor)),
-                  Padding(padding: const EdgeInsets.only(right: 50), child: Text(members.firstWhere((element) => element.id == comment.memberId).name, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor))),
+                  TextField(
+                    readOnly: !editComment[i],
+                    maxLines: null,
+                    style: const TextStyle(fontSize: 15, color: SpecialColors.commentTextcolor),
+                    controller: commentController,
+                    decoration: const InputDecoration(isDense: true, border: InputBorder.none, focusedBorder: InputBorder.none, enabledBorder: InputBorder.none, disabledBorder: InputBorder.none),
+                  ),
+                  Text(memberName, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor)),
                 ]
               )
         ),
-        Positioned(right: 0, bottom: 0, child: Container(padding: const EdgeInsets.all(10), child: IconButton(onPressed: () => showDeleteDialog(comment), icon: const Icon(Icons.delete, color: SpecialColors.commentTextcolor, size: 15)))),
+        Positioned(
+          right: 0, 
+          bottom: 0, 
+          child: Padding(padding: const EdgeInsets.all(10), 
+            child: Row(
+              children: [
+                editComment[i] ? IconButton(
+                  onPressed: () {
+                    comment.text = commentController.text.replaceAll("‎", "");
+                    comment.text = comment.text.trim();
+                    if (comment.text != '') {
+                      DatabaseHelper.instance.updateComment(Comment(id: comment.id, text: comment.text, bookId: comment.bookId, memberId: comment.memberId));
+                      setState(() => editComment[i] = !editComment[i]);
+                    }
+                  },
+                  icon: const Icon(Icons.check, color: SpecialColors.commentTextcolor, size: 15)
+                ) : IconButton(
+                    onPressed: () => showDeleteDialog(comment), 
+                    icon: const Icon(Icons.delete, color: SpecialColors.commentTextcolor, size: 15)
+                ),
+                IconButton(
+                  onPressed: () => setState(() => editComment[i] = !editComment[i]), 
+                  icon: Icon(editComment[i] ? Icons.close : Icons.edit, color: SpecialColors.commentTextcolor, size: 15)
+                )
+              ]
+            )
+          ),
+        ),
       ],
     );
   }
@@ -172,7 +211,7 @@ class _CommentDialogState extends State<CommentDialog> {
             itemBuilder: (BuildContext context, int i) {
               return Align(
                 alignment: Alignment.topLeft,
-                child: comment(comments[i]),
+                child: comment(comments[i], i),
               );
             },
           ),

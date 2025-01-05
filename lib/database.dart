@@ -112,6 +112,13 @@ class DatabaseHelper {
     });
   }
 
+  updateComment(Comment comment) async {
+    await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return await db.from('comments').update(comment.toMap()).eq('id', comment.id!);
+    });
+  }
+
   addComment(Comment comment) async {
     return await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
