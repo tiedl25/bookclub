@@ -21,6 +21,7 @@ class StatisticsDialog extends StatefulWidget {
 class _StatisticsDialogState extends State<StatisticsDialog> {
   late Future<List<Progress>> progressFuture;
   late List<Progress> progress;
+  late final List<Book> books;
 
   final icons = [
   const Icon(Icons.star, color: SpecialColors.gold, size: 40),
@@ -33,14 +34,16 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
   void initState() {
     super.initState();
     progressFuture = DatabaseHelper.instance.getProgressList();
+    books = widget.books.where((b) => b.name != null).toList();
   }
 
   Map<String, double> nominateShamePerson() {
     Map<String, double> progressByMember = {};
+
     for (var member in widget.members){
       var memberProgress = progress.where((element) => element.memberId == member.id);
       if (memberProgress.isNotEmpty){
-        final parts = memberProgress.map((e) => e.page / (e.maxPages ?? widget.books[e.bookId!-1].pages)).toList();
+        final parts = memberProgress.map((e) => e.page / (e.maxPages ?? books.firstWhere((b) => b.id == e.bookId).pages!)).toList();
         double overalProgress = parts.reduce((element, value) => element + value) / parts.length;
         progressByMember[member.name] = overalProgress;
       }
@@ -97,12 +100,12 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
 
   Map<String, double> bookRatingList(){
     Map<String, double> ratingByBook = {};
-    for (var book in widget.books){
+    for (var book in books){
       var bookProgress = progress.where((element) => element.bookId == book.id && element.rating != null && element.page > 0);
       if (bookProgress.isNotEmpty){
         final parts = bookProgress.map((e) => e.rating ?? 0).toList();
         double overalRating = parts.reduce((element, value) => element + value) / parts.length;
-        ratingByBook[book.name] = overalRating;
+        ratingByBook[book.name!] = overalRating;
       }
     }
     return Map.fromEntries(ratingByBook.entries.toList()..sort((e1, e2) => e2.value.compareTo(e1.value)));

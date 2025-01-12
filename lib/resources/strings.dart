@@ -7,4 +7,5 @@ class CustomStrings {
   static const String deleteCommentDialogContent = "Are you sure you want to delete this comment?";
   static const String finishDialogTitle = "Breaking news";
   static const String updateDialogTitle = "Update page number";
+  static const String commentsNotAvailable = "Comments not available";
 }

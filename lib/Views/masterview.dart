@@ -44,10 +44,11 @@ class _MyHomePageState extends State<MyHomePage> {
   final carouselSliderController = CarouselSliderController();
 
   int get daysLeft => book.to.difference(DateTime.now()).inDays+1;
-  int get minimumPages => (book.pages/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
+  int get minimumPages => (book.pages!/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
   String get bookInfo => '${book.name} von ${book.author} - ${book.pages} Seiten';
   String get bookDaysLeft => 'Du hast noch $daysLeft Tag${daysLeft > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!';
   String get bookMinPages => 'Seite $minimumPages sollte jetzt schon drin sein.';
+  String get bookProvider => '${members.firstWhere((m) => m.id == book.providerId).name} ist verantwortlich für dieses Buch';
 
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
@@ -76,11 +77,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return finishSentences[Random().nextInt(finishSentences.length)];
   }
 
-  Future<Color?> getDominantColor(String imagePath) async {
+  Future<Color?> getDominantColor(String? imagePath) async {
+    if (imagePath == null) {
+      return Colors.white;
+    }
+
     final response = await http.get(Uri.parse(imagePath));
 
     if (response.statusCode != 200) {
-      return Colors.black;
+      return Colors.white;
     }
 
     final imageProvider = Image.memory(response.bodyBytes).image;
@@ -142,10 +147,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Column(
                       children: [
                         bookCarousel(),
+                        const SizedBox(height: 10,),
                         //const Spacer(flex: 1),
-                        AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
-                        if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
-                        if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (book.name != null) AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (book.name != null) if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (book.name != null) if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
+                        AutoSizeText(bookProvider, textAlign: TextAlign.center, minFontSize: 14,),
                       ]
                     )
                   ),
@@ -153,11 +160,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 ]
               ),
               const Divider(),
-              Expanded(flex: 20, child: 
-                Row(
+              Expanded(
+                flex: 20, 
+                child: Row(
                   children: [
-                    Expanded(flex: 20, child: memberBoard(progressList)),
-                    if (aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
+                    if (book.name != null) Expanded(flex: 20, child: memberBoard(progressList)),
+                    if (book.name != null && aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
                   ]
                 ),
               ),
@@ -182,7 +190,12 @@ class _MyHomePageState extends State<MyHomePage> {
             mini: true,
             //alignment: Alignment.bottomCenter,
             onPressed: (){
-              showCommentDialog();
+              if (book.name != null) {
+                showCommentDialog();
+              }
+              else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(CustomStrings.commentsNotAvailable)));
+              }
             },
             child: const Icon(Icons.comment)
           ),
@@ -298,18 +311,22 @@ class _MyHomePageState extends State<MyHomePage> {
           child: GestureDetector(
             onTap: () => setState(() {
               if(i.id == book.id){
-                aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
+                if (i.name != null) aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
               }
               else {
                 showDescription = false;
                 carouselSliderController.animateToPage(i.id!-1);
               }
             }),
-            child: showDescription && i.id == book.id ? Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: bookColors[i.id]),
-              child: description(bookColors[i.id]!, i)
-            ) : Image.network(i.image_path)
+            child: i.name != null && showDescription && i.id == book.id 
+              ? Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: bookColors[i.id]),
+                  child: description(bookColors[i.id]!, i)
+                ) 
+              : i.name != null
+                ? Image.network(i.image_path!)
+                : Image.asset('assets/images/book_placeholder.jpeg'),
           ),
         );
       }).toList(),
@@ -353,7 +370,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width*0.9,
-          child: progressIndicator(progress),
+          child: book.name != null ? progressIndicator(progress) : Container(),
         )
       ]
     );
@@ -378,7 +395,7 @@ class _MyHomePageState extends State<MyHomePage> {
         const Spacer(flex: 1,),
         Expanded(
           flex: 30,
-          child: progressIndicator(progress),
+          child: book.name != null ? progressIndicator(progress) : Container(),
         ),
         const Spacer(flex: 1,),
         rating(progress),
@@ -391,15 +408,15 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         LinearProgressIndicator(
           minHeight: 20,
-          value: progress.page/(progress.maxPages ?? book.pages),
+          value: progress.page/(progress.maxPages ?? book.pages!),
           borderRadius: BorderRadius.circular(10),
           color: Color(members.firstWhere((element) => element.id == progress.memberId).color),
         ),
         Align(
-          alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/(progress.maxPages ?? book.pages)) as AlignmentGeometry,
+          alignment: AlignmentGeometry.lerp(Alignment.bottomLeft, Alignment.bottomRight, progress.page/(progress.maxPages ?? book.pages!)) as AlignmentGeometry,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(progress.page == (progress.maxPages ?? book.pages) ? 'Finished' : 'Seite ${progress.page} (${(progress.page/(progress.maxPages ?? book.pages)*100).toStringAsFixed(0)}%)')
+            child: Text(progress.page == (progress.maxPages ?? book.pages) ? 'Finished' : 'Seite ${progress.page} (${(progress.page/(progress.maxPages ?? book.pages!)*100).toStringAsFixed(0)}%)')
           ),
         )
       ]
