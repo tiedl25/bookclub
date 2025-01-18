@@ -48,7 +48,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String get bookInfo => '${book.name} von ${book.author} - ${book.pages} Seiten';
   String get bookDaysLeft => 'Du hast noch $daysLeft Tag${daysLeft > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!';
   String get bookMinPages => 'Seite $minimumPages sollte jetzt schon drin sein.';
-  String get bookProvider => '${members.firstWhere((m) => m.id == book.providerId).name} ist verantwortlich für dieses Buch';
+  String get bookProvider => book.name != null
+    ? '${members.firstWhere((m) => m.id == book.providerId).name} hat dieses Buch ausgesucht'
+    : 'Als nächstes muss ${members.firstWhere((m) => m.id == book.providerId).name} ein Buch auswählen';
 
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
@@ -152,7 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (book.name != null) AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
                         if (book.name != null) if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
                         if (book.name != null) if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
-                        AutoSizeText(bookProvider, textAlign: TextAlign.center, minFontSize: 14,),
+                        AutoSizeText(bookProvider, textAlign: TextAlign.center, minFontSize: 16,),
+                        if (book.name == null && members.every((e) => e.veto)) const AutoSizeText(CustomStrings.veto, textAlign: TextAlign.center, minFontSize: 14,),
                       ]
                     )
                   ),
@@ -164,7 +167,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 flex: 20, 
                 child: Row(
                   children: [
-                    if (book.name != null) Expanded(flex: 20, child: memberBoard(progressList)),
+                    if (book.name == null && aspRat > 1) const Spacer(flex: 40,),
+                    Expanded(flex: 20, child: book.name != null ? memberBoard(progressList) : votingBoard()),
+                    if (book.name == null && aspRat > 1) const Spacer(flex: 40,),
                     if (book.name != null && aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
                   ]
                 ),
@@ -330,6 +335,30 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget votingBoard(){
+    return GridView.builder(
+      padding: const EdgeInsets.all(10),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        crossAxisCount: 2, 
+        childAspectRatio: 5/2
+      ),
+      itemCount: members.length,
+      itemBuilder: (context, i) => TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: members[i].veto ? Color(members[i].color) : Theme.of(context).colorScheme.primaryContainer,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
+        ),
+          onPressed: () => setState(() {
+            members[i].veto = !members[i].veto;
+            DatabaseHelper.instance.updateMember(members[i]);
+          }), 
+          child: Text(members[i].name, style: TextStyle(color: members[i].veto ? Colors.black : Theme.of(context).textTheme.bodySmall?.color),)
+        ),
     );
   }
 

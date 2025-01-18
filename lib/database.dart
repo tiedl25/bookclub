@@ -105,6 +105,13 @@ class DatabaseHelper {
     return response.isNotEmpty ? List.generate(response.length, (index) => Progress.fromMap(response[index])) : [];
   }
 
+  updateMember(Member member) async {
+    await lock.synchronized(() async {
+      SupabaseClient db = await instance.database;
+      return await db.from('members').update(member.toMap()).eq('id', member.id!);
+    });
+  }
+
   updateProgress(Progress progress) async {
     await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
