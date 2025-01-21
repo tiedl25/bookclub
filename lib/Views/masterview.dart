@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String get bookDaysLeft => 'Du hast noch $daysLeft Tag${daysLeft > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!';
   String get bookMinPages => 'Seite $minimumPages sollte jetzt schon drin sein.';
   String get bookProvider => book.name != null
-    ? '${members.firstWhere((m) => m.id == book.providerId).name} hat dieses Buch ausgesucht'
+    ? '${members.firstWhere((m) => m.id == book.providerId).name} hat das Buch ausgesucht'
     : 'Als nächstes muss ${members.firstWhere((m) => m.id == book.providerId).name} ein Buch auswählen';
 
   Future<void> init() async {
@@ -330,9 +330,26 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: BoxDecoration(color: bookColors[i.id]),
                   child: description(bookColors[i.id]!, i)
                 ) 
-              : i.name != null
-                ? Image.network(i.image_path!)
-                : Image.asset('assets/images/book_placeholder.jpeg'),
+              : Stack(
+                children: [
+                  i.name != null
+                    ? Image.network(i.image_path!)
+                    : Image.asset('assets/images/book_placeholder.jpeg'),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundImage: members.firstWhere((m) => m.id == i.providerId).profilePicture != null
+                          ? MemoryImage(members.firstWhere((m) => m.id == i.providerId).profilePicture!) as ImageProvider<Object>
+                          : const AssetImage('assets/images/pp_placeholder.jpeg'),
+                      ),
+                    )
+                  )
+                ]
+              ),
           ),
         );
       }).toList(),

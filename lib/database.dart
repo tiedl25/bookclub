@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/comment.dart';
@@ -81,7 +82,8 @@ class DatabaseHelper {
     });
 
     if (response.isNotEmpty) {
-      return Member.fromMap(response);
+      return Member.fromMap(response)
+        ..profilePicture = await getProfilePicture(id);
     } else {
       throw Exception('Member not found');
     }
@@ -93,7 +95,24 @@ class DatabaseHelper {
       return (await db.from('members').select().order('id', ascending: true));
     });
 
-    return response.isNotEmpty ? List.generate(response.length, (index) => Member.fromMap(response[index])) : [];
+    List<Member> members = [];
+    for (var i = 0; i < response.length; i++) {
+      var member = Member.fromMap(response[i]);
+      member.profilePicture = await getProfilePicture(response[i]['id']);
+      members.add(member);
+    }
+
+    return response.isNotEmpty ? members : [];
+  }
+
+  Future<Uint8List?> getProfilePicture(int id) async {
+    try{
+      return await Supabase.instance.client.storage
+        .from('public/profile_pictures') // Replace with your storage bucket name
+        .download("$id.jpg");
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<List<Progress>> getProgressList([int? bookId]) async {
