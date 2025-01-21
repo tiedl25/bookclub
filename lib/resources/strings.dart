@@ -9,4 +9,5 @@ class CustomStrings {
   static const String updateDialogTitle = "Update page number";
   static const String commentsNotAvailable = "Comments not available";
   static const String veto = 'Das Buch wurde einstimmig abekanzelt';
+  static const String vetoInfo = 'Lege ein Veto ein falls du damit ein Problem hast';
 }

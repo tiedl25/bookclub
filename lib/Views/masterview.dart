@@ -156,6 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (book.name != null) if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
                         AutoSizeText(bookProvider, textAlign: TextAlign.center, minFontSize: 16,),
                         if (book.name == null && members.every((e) => e.veto)) const AutoSizeText(CustomStrings.veto, textAlign: TextAlign.center, minFontSize: 14,),
+                        if (book.name == null && !members.every((e) => e.veto)) const AutoSizeText(CustomStrings.vetoInfo, textAlign: TextAlign.center, minFontSize: 14,),
                       ]
                     )
                   ),
