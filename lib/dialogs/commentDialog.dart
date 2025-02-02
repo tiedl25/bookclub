@@ -143,7 +143,8 @@ class _CommentDialogState extends State<CommentDialog> {
   Widget comment(Comment comment, int i){
     const emptySpace = "                   ‎";
     final commentController = TextEditingController(text: "${comment.text}$emptySpace");
-    final memberName = "${members.firstWhere((element) => element.id == comment.memberId).name}$emptySpace";
+    final member = members.firstWhere((element) => element.id == comment.memberId);
+    final memberName = "${member.name}$emptySpace";
 
     return Stack(
       children: [
@@ -164,7 +165,18 @@ class _CommentDialogState extends State<CommentDialog> {
                     controller: commentController,
                     decoration: const InputDecoration(isDense: true, border: InputBorder.none, focusedBorder: InputBorder.none, enabledBorder: InputBorder.none, disabledBorder: InputBorder.none),
                   ),
-                  Text(memberName, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor)),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 10,
+                        backgroundImage: member.profilePicture != null
+                          ? MemoryImage(member.profilePicture!) as ImageProvider<Object>
+                          : const AssetImage('assets/images/pp_placeholder.jpeg'),
+                      ),
+                      const SizedBox(width: 10,),
+                      Text(memberName, style: const TextStyle(fontSize: 10, color: SpecialColors.commentTextcolor)),
+                    ],
+                  ),
                 ]
               )
         ),

@@ -76,10 +76,19 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
           itemBuilder: (context, index) {
             final e = progressByMember[index];
 
+            final member = widget.members.firstWhere((element) => element.name == e.key);
+
             return Row(
               mainAxisAlignment: MainAxisAlignment.start, 
               children: [
                 memberIcons[index],
+                const SizedBox(width: 5),
+                CircleAvatar(
+                  radius: 10,
+                  backgroundImage: member.profilePicture != null
+                    ? MemoryImage(member.profilePicture!) as ImageProvider<Object>
+                    : const AssetImage('assets/images/pp_placeholder.jpeg'),
+                ),
                 const SizedBox(width: 5),
                 Expanded(
                   child: Row(

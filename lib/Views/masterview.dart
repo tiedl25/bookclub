@@ -52,6 +52,8 @@ class _MyHomePageState extends State<MyHomePage> {
     ? '${members.firstWhere((m) => m.id == book.providerId).name} hat das Buch ausgesucht'
     : 'Als nächstes muss ${members.firstWhere((m) => m.id == book.providerId).name} ein Buch auswählen';
 
+  bool get phone => aspRat < 1 ? true : false;
+
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
     books = await DatabaseHelper.instance.getBookList();
@@ -341,7 +343,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Padding(
                       padding: const EdgeInsets.all(5),
                       child: CircleAvatar(
-                        radius: 30,
+                        radius: phone ? 20 : 30,
                         backgroundImage: members.firstWhere((m) => m.id == i.providerId).profilePicture != null
                           ? MemoryImage(members.firstWhere((m) => m.id == i.providerId).profilePicture!) as ImageProvider<Object>
                           : const AssetImage('assets/images/pp_placeholder.jpeg'),
@@ -375,7 +377,19 @@ class _MyHomePageState extends State<MyHomePage> {
             members[i].veto = !members[i].veto;
             DatabaseHelper.instance.updateMember(members[i]);
           }), 
-          child: Text(members[i].name, style: TextStyle(color: members[i].veto ? Colors.black : Theme.of(context).textTheme.bodySmall?.color),)
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 10,
+                backgroundImage: members[i].profilePicture != null
+                  ? MemoryImage(members[i].profilePicture!) as ImageProvider<Object>
+                  : const AssetImage('assets/images/pp_placeholder.jpeg'),
+              ),
+              const SizedBox(width: 10),
+              Text(members[i].name, style: TextStyle(color: members[i].veto ? Colors.black : Theme.of(context).textTheme.bodySmall?.color),),
+            ],
+          )
         ),
     );
   }
@@ -394,24 +408,38 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  List<Widget> progressDescription(Progress progress){
+    return [
+      CircleAvatar(
+        radius: 10,
+        backgroundImage: members.firstWhere((element) => element.id == progress.memberId).profilePicture != null
+          ? MemoryImage(members.firstWhere((element) => element.id == progress.memberId).profilePicture!) as ImageProvider<Object>
+          : const AssetImage('assets/images/pp_placeholder.jpeg'),
+      ),
+      const SizedBox(width: 10,),
+      SizedBox(
+        width: nameMaxLength,
+        child: Text(members.firstWhere((element) => element.id == progress.memberId).name)
+      ),
+      IconButton(
+        onPressed: (){
+          showUpdateDialog(progress).then((value) {
+            if (value) showFinishDialog();
+          });
+        }, 
+        icon: const Icon(Icons.update),
+      ),
+    ];
+  }
+
+
   Widget mobileProgress(Progress progress){
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              width: nameMaxLength,
-              child: Text(members.firstWhere((element) => element.id == progress.memberId).name)
-            ),
-            IconButton(
-              onPressed: (){
-                showUpdateDialog(progress).then((value) {
-                  if (value) showFinishDialog();
-                });
-              }, 
-              icon: const Icon(Icons.update),
-            ),
+            ...progressDescription(progress),
             Expanded(child: rating(progress)),
           ],
         ),
@@ -427,18 +455,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        SizedBox(
-          width: nameMaxLength,
-          child: Text(members.firstWhere((element) => element.id == progress.memberId).name)
-        ),
-        IconButton(
-          onPressed: (){
-            showUpdateDialog(progress).then((value) {
-              if (value) showFinishDialog();
-            });
-          }, 
-          icon: const Icon(Icons.update),
-        ),
+        ...progressDescription(progress),
         const Spacer(flex: 1,),
         Expanded(
           flex: 30,
