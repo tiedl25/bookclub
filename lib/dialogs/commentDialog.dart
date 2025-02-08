@@ -5,6 +5,7 @@ import 'package:bookclub/models/member.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/resources/strings.dart';
+import 'package:bookclub/utils.dart';
 import 'package:flutter/material.dart' hide Dialog;
 
 class CommentDialog extends StatefulWidget {
@@ -101,7 +102,15 @@ class _CommentDialogState extends State<CommentDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               commentDropDown(setState), 
-              IconButton(icon: const Icon(Icons.send, color: SpecialColors.commentTextcolor), onPressed: () => addComment(commentController.text),),
+              IconButton(
+                icon: const Icon(Icons.send, color: SpecialColors.commentTextcolor), 
+                onPressed: () async {
+                  final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+                  if (!login) return;
+
+                  addComment(commentController.text);
+                }
+              ),
             ]
           ),
         ]
@@ -186,24 +195,39 @@ class _CommentDialogState extends State<CommentDialog> {
           child: Padding(padding: const EdgeInsets.all(10), 
             child: Row(
               children: [
-                editComment[i] ? IconButton(
-                  onPressed: () {
-                    comment.text = commentController.text.replaceAll("‎", "");
-                    comment.text = comment.text.trim();
-                    if (comment.text != '') {
-                      DatabaseHelper.instance.updateComment(Comment(id: comment.id, text: comment.text, bookId: comment.bookId, memberId: comment.memberId));
-                      setState(() => editComment[i] = !editComment[i]);
-                    }
-                  },
-                  icon: const Icon(Icons.check, color: SpecialColors.commentTextcolor, size: 15)
-                ) : IconButton(
-                    onPressed: () => showDeleteDialog(comment), 
-                    icon: const Icon(Icons.delete, color: SpecialColors.commentTextcolor, size: 15)
-                ),
-                IconButton(
-                  onPressed: () => setState(() => editComment[i] = !editComment[i]), 
-                  icon: Icon(editComment[i] ? Icons.close : Icons.edit, color: SpecialColors.commentTextcolor, size: 15)
-                )
+                editComment[i] 
+                  ? IconButton(
+                      onPressed: () async {
+                        final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+                        if (!login) return;
+
+                        comment.text = commentController.text.replaceAll("‎", "");
+                        comment.text = comment.text.trim();
+                        if (comment.text != '') {
+                          DatabaseHelper.instance.updateComment(Comment(id: comment.id, text: comment.text, bookId: comment.bookId, memberId: comment.memberId));
+                          setState(() => editComment[i] = !editComment[i]);
+                        }
+                      },
+                      icon: const Icon(Icons.check, color: SpecialColors.commentTextcolor, size: 15)
+                    ) 
+                  : IconButton(
+                      onPressed: () async {
+                        final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+                        if (!login) return;
+
+                        showDeleteDialog(comment);
+                      },
+                      icon: const Icon(Icons.delete, color: SpecialColors.commentTextcolor, size: 15)
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+                        if (!login) return;
+
+                        setState(() => editComment[i] = !editComment[i]);
+                      },
+                      icon: Icon(editComment[i] ? Icons.close : Icons.edit, color: SpecialColors.commentTextcolor, size: 15)
+                    )
               ]
             )
           ),

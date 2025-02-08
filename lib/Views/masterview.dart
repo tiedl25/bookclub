@@ -12,11 +12,13 @@ import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
+import 'package:bookclub/utils.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:http/http.dart' as http;
 import 'package:palette_generator/palette_generator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title, required this.changeTheme});
@@ -42,6 +44,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<int, Color> bookColors = {};
   bool showDescription = false;
   final carouselSliderController = CarouselSliderController();
+  final pinController = TextEditingController();
+  bool? login;
+
+  _MyHomePageState() {
+    DatabaseHelper.instance.checkLogin().then((value) => setState(() => login = value));
+  }
 
   int get daysLeft => book.to.difference(DateTime.now()).inDays+1;
   int get minimumPages => (book.pages!/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
@@ -224,12 +232,27 @@ class _MyHomePageState extends State<MyHomePage> {
           Positioned(
             right: 0,
             top: 0,
-            child: IconButton(
-              padding: const EdgeInsets.all(10),
-              icon: Theme.of(context).brightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
-              onPressed: (){
-                widget.changeTheme((Theme.of(context).brightness == Brightness.dark) ? ThemeMode.light : ThemeMode.dark);
-              },
+            child: Row(
+              children: [
+                if (login != null) IconButton(
+                  padding: const EdgeInsets.all(10),
+                  icon: login! ? const Icon(Icons.login) : const Icon(Icons.logout),
+                  onPressed: (){
+                    if (login!) {
+                      Supabase.instance.client.auth.signOut().then((_) => setState(() => login = false));
+                    } else {
+                      showLoginDialog(setState, context).then((value) => setState(() => login = value));
+                    }
+                  },
+                ),
+                IconButton(
+                  padding: const EdgeInsets.all(10),
+                  icon: Theme.of(context).brightness == Brightness.dark ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode),
+                  onPressed: (){
+                    widget.changeTheme((Theme.of(context).brightness == Brightness.dark) ? ThemeMode.light : ThemeMode.dark);
+                  },
+                ),
+              ],
             )
           )
         ]
@@ -239,12 +262,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //Dialogs
 
-  Future<dynamic> showUpdateDialog(Progress progress){
-    return showDialog(context: context, builder: (builder){
+  Future<bool> showUpdateDialog(Progress progress) async {
+    login = await DatabaseHelper.instance.checkLogin();
+    if (!login!){
+      return Future.value(false);
+    } 
+    return await showDialog(context: context, builder: (builder){
       return UpdateDialog(book: book, progress: progress, updateProgress: (newProgress) => setState(() {
         progress = newProgress;
       }));
-    });
+    }) as bool;
   }
 
   void showStatisticsDialog(){
@@ -373,10 +400,15 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: members[i].veto ? Color(members[i].color) : Theme.of(context).colorScheme.primaryContainer,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
         ),
-          onPressed: () => setState(() {
-            members[i].veto = !members[i].veto;
-            DatabaseHelper.instance.updateMember(members[i]);
-          }), 
+          onPressed: () async {
+            login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+            if (!login!) return;
+
+            setState(() {
+              members[i].veto = !members[i].veto;
+              DatabaseHelper.instance.updateMember(members[i]);
+            });
+          }, 
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -422,7 +454,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Text(members.firstWhere((element) => element.id == progress.memberId).name)
       ),
       IconButton(
-        onPressed: (){
+        onPressed: () async {
+          login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+          if (!login!) return;
+          
           showUpdateDialog(progress).then((value) {
             if (value) showFinishDialog();
           });
@@ -494,7 +529,10 @@ class _MyHomePageState extends State<MyHomePage> {
         (index) {
           return InkWell(
             child: Icon(Icons.book, color: progress.rating == null || progress.rating! < index + 1 ? SpecialColors.bookDefaultColor : SpecialColors.bookSelectedColor),
-            onTap: () {
+            onTap: () async {
+              login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
+              if (!login!) return;
+
               if (progress.rating == index+1){
                 progress.rating = 0;
               } else {

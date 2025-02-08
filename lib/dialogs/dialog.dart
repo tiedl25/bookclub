@@ -45,44 +45,47 @@ class CustomDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     this.context = context;
 
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-      child: Dialog(
-        insetPadding: title == null ? const EdgeInsets.all(15) : null,
-        child: SizedBox(
-          height: fullWindow ? MediaQuery.of(context).size.height : null,
-          width: fullWindow ? MediaQuery.of(context).size.width : double.minPositive,
-          child: Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  color: backgroundColor ?? Theme.of(context).dialogBackgroundColor,
+    return PopScope(
+      onPopInvokedWithResult: (_, confirmed) => confirmed as bool ? true : false,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Dialog(
+          insetPadding: title == null ? const EdgeInsets.all(15) : null,
+          child: SizedBox(
+            height: fullWindow ? MediaQuery.of(context).size.height : null,
+            width: fullWindow ? MediaQuery.of(context).size.width : double.minPositive,
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    color: backgroundColor ?? Theme.of(context).dialogBackgroundColor,
+                  ),
+                  padding: EdgeInsets.all(padding), 
+                  child: column()
                 ),
-                padding: EdgeInsets.all(padding), 
-                child: column()
-              ),
-              Positioned(
-                right: 0,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    margin: const EdgeInsets.all(5),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: SpecialColors.closeButtonBackground,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: SpecialColors.closeButton,
+                Positioned(
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(false),
+                    child: Container(
+                      margin: const EdgeInsets.all(5),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: SpecialColors.closeButtonBackground,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: SpecialColors.closeButton,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ]
-          ),
-        )
+              ]
+            ),
+          )
+        ),
       ),
     );
   }

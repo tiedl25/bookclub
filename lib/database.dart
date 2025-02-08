@@ -5,6 +5,7 @@ import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
+import 'package:bookclub/result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -25,6 +26,11 @@ class DatabaseHelper {
     );
 
     return Supabase.instance.client;
+  }
+
+  Future<bool> checkLogin() async {
+    final sb = await instance.database;
+    return sb.auth.currentUser != null;
   }
 
   addBook(Book book) async {
@@ -176,5 +182,43 @@ class DatabaseHelper {
 
     return response.isNotEmpty ? List.generate(response.length, (index) => response[index]['text']) : [];
   }
+
+  Future<Result> loginWithPin(String enteredPin) async {
+    const adminEmail = 'admin@bookclub.com';
+    const memberEmail = 'member@bookclub.com';
+
+    AuthResponse? authResponse;
+
+    try{
+      authResponse = await Supabase.instance.client.auth.signInWithPassword(
+        email: memberEmail,
+        password: enteredPin,
+      );
+    } catch (e){
+      e as AuthApiException;
+      if (e.message == 'Invalid login credentials') {
+        try{
+          authResponse = await Supabase.instance.client.auth.signInWithPassword(
+            email: adminEmail,
+            password: enteredPin,
+          );
+        } catch (e){
+          e as AuthApiException;
+          if (e.message == 'Invalid login credentials') {
+            return Result.failure(e.message);
+          }
+        }
+      }
+    }
+
+    if (authResponse != null && authResponse.session != null) {
+      final email = authResponse.user!.email;
+      final role = (email == 'admin@bookclub.com') ? 'admin' : 'member';
+      return Result.success("You are logged in as $role");
+    } else {
+      return Result.failure('Login failed');
+    }
+  }
+
 }
 
