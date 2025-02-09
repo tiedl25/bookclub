@@ -6,6 +6,7 @@ import 'package:bookclub/models/comment.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/result.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -21,8 +22,8 @@ class DatabaseHelper {
 
   Future<SupabaseClient> _initDatabase() async {
     await Supabase.initialize(
-      url: 'https://supabase.tiedl.rocks',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE',
+      url: dotenv.env['SUPABASE_URL']!,
+      anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
     );
 
     return Supabase.instance.client;

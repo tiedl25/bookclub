@@ -1,9 +1,11 @@
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'Views/masterview.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
