@@ -10,6 +10,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 
+const adminEmail = 'admin@bookclub.com';
+const memberEmail = 'member@bookclub.com';
+
 class DatabaseHelper {
   //Singleton Pattern
   DatabaseHelper._privateConstructor();
@@ -34,10 +37,29 @@ class DatabaseHelper {
     return sb.auth.currentUser != null;
   }
 
+  Future<bool> checkAdmin() async {
+    final sb = await instance.database;
+    return sb.auth.currentUser?.email == adminEmail;
+  }
+
   addBook(Book book) async {
     await lock.synchronized(() async {
       SupabaseClient db = await instance.database;
-      return await db.from('books').insert(book.toMap());
+      final response = await db.from('books').insert(book.toMap()).select('id').single();
+      final id = response['id'];
+
+      final members = await getMemberList();
+      
+      var progressFutures = <Future>[];
+      for (var i = 0; i < members.length; i++) {
+        progressFutures.add(db.from('progress').insert(Progress(
+          bookId: id,
+          memberId: members[i].id!,
+          page: 0,
+        ).toMap()));
+      }
+
+      await Future.wait(progressFutures);
     });
   }
 
@@ -104,7 +126,7 @@ class DatabaseHelper {
 
     List<Member> members = [];
     for (var i = 0; i < response.length; i++) {
-      var member = Member.fromMap(response[i]);
+      Member member = Member.fromMap(response[i]);
       member.profilePicture = await getProfilePicture(response[i]['id']);
       members.add(member);
     }
@@ -185,9 +207,6 @@ class DatabaseHelper {
   }
 
   Future<Result> loginWithPin(String enteredPin) async {
-    const adminEmail = 'admin@bookclub.com';
-    const memberEmail = 'member@bookclub.com';
-
     AuthResponse? authResponse;
 
     try{

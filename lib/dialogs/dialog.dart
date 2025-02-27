@@ -14,6 +14,7 @@ class CustomDialog extends StatelessWidget {
   final bool fullWindow;
   final Widget? submitButton;
   final double padding;
+  final double? margin;
   final Color? backgroundColor;
   late BuildContext context;
 
@@ -24,6 +25,7 @@ class CustomDialog extends StatelessWidget {
     this.fullWindow = false,
     this.submitButton,
     this.padding = 20,
+    this.margin,
     this.backgroundColor,
   });
 
@@ -34,8 +36,7 @@ class CustomDialog extends StatelessWidget {
       children: [
         if (title != null) DefaultTextStyle(style: Theme.of(context).textTheme.titleLarge!, child: title!),
         if (title != null) SizedBox(height: padding),
-        Flexible(child: content),
-        if (submitButton != null) SizedBox(height: padding),
+        Expanded(child: SingleChildScrollView(child: content)),
         if (submitButton != null) submitButton!,
       ],
     );
@@ -50,7 +51,7 @@ class CustomDialog extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: Dialog(
-          insetPadding: title == null ? const EdgeInsets.all(15) : null,
+          insetPadding: fullWindow ? const EdgeInsets.all(15) : (title == null ? const EdgeInsets.all(15) : null),
           child: SizedBox(
             height: fullWindow ? MediaQuery.of(context).size.height : null,
             width: fullWindow ? MediaQuery.of(context).size.width : double.minPositive,

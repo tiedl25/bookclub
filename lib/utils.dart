@@ -13,6 +13,7 @@ Future<bool> showLoginDialog(setState, context, [title]) async {
     return CustomDialog(
       title: Text(title ?? 'Login'),
       content: TextField(
+        keyboardType: TextInputType.number,
         controller: pinController,
         obscureText: true,
         decoration: InputDecoration(
@@ -33,3 +34,15 @@ Future<bool> showLoginDialog(setState, context, [title]) async {
   }
   ) as bool;
 }
+
+OutlineInputBorder get textFieldBorder => OutlineInputBorder(
+  borderSide: BorderSide.none, 
+  borderRadius: BorderRadius.circular(15),
+);
+
+InputDecoration textFieldDecoration(String hintText) => InputDecoration(
+  contentPadding: const EdgeInsets.all(10),
+  filled: true,
+  hintText: hintText,
+  border: textFieldBorder,
+);

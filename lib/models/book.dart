@@ -4,8 +4,8 @@ class Book{
   String? author;
   int? pages;
   String? image_path;
-  DateTime from;
-  DateTime to;
+  DateTime? from;
+  DateTime? to;
   String? description;
   int? providerId;
 
@@ -16,6 +16,10 @@ class Book{
     'image_path': image_path,
     'author': author,
     'pages': pages,
+    'from': from!.toIso8601String(),
+    'to': to!.toIso8601String(),
+    'description': description,
+    'provider': providerId
   };
 
   factory Book.fromMap(Map<String, dynamic> map) {

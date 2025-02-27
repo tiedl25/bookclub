@@ -10,7 +10,6 @@ class Progress{
   Progress({this.id, required this.page, this.rating, this.bookId, this.memberId, this.maxPages});
 
   Map<String, dynamic> toMap() => {
-    'id': id,
     'page': page,
     'rating': rating,
     'book': bookId,

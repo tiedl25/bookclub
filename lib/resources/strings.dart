@@ -11,4 +11,7 @@ class CustomStrings {
   static const String veto = 'Das Buch wurde einstimmig abekanzelt';
   static const String vetoInfo = 'Lege ein Veto ein falls du damit ein Problem hast';
   static const String loginDialogTitle = 'Du musst dich erst einloggen';
+  static const String addDialogTitle = 'Add a new book';
+  static const String addSubmitButton = 'Add book';
+  static const String addDialogValidationError = 'Please fill in all fields';
 }

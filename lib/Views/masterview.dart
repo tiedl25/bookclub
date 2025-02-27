@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bookclub/dialogs/addDialog.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/dialogs/updateDialog.dart';
 import 'package:bookclub/resources/colors.dart';
@@ -46,25 +47,60 @@ class _MyHomePageState extends State<MyHomePage> {
   final carouselSliderController = CarouselSliderController();
   final pinController = TextEditingController();
   bool? login;
+  bool? admin;
 
   _MyHomePageState() {
-    DatabaseHelper.instance.checkLogin().then((value) => setState(() => login = value));
+    DatabaseHelper.instance.checkLogin().then((value) async {
+      DatabaseHelper.instance.checkAdmin().then((value) {
+        setState(() {
+          login = value;
+          admin = value;
+        });
+      });
+    }
+  );
   }
 
-  int get daysLeft => book.to.difference(DateTime.now()).inDays+1;
-  int get minimumPages => (book.pages!/book.from.difference(book.to).inDays*book.from.difference(DateTime.now()).inDays).toInt();
+  int get daysLeft => book.to!.difference(DateTime.now()).inDays+1;
+  int get minimumPages => (book.pages!/book.from!.difference(book.to!).inDays*book.from!.difference(DateTime.now()).inDays).toInt();
   String get bookInfo => '${book.name} von ${book.author} - ${book.pages} Seiten';
   String get bookDaysLeft => 'Du hast noch $daysLeft Tag${daysLeft > 1 ? 'e' : ''} um das Buch zu lesen. Die Zeit rennt!!!';
   String get bookMinPages => 'Seite $minimumPages sollte jetzt schon drin sein.';
-  String get bookProvider => book.name != null
+  String get bookProvider => !defaultBook(book.from)
     ? '${members.firstWhere((m) => m.id == book.providerId).name} hat das Buch ausgesucht'
     : 'Als nächstes muss ${members.firstWhere((m) => m.id == book.providerId).name} ein Buch auswählen';
 
   bool get phone => aspRat < 1 ? true : false;
 
+  bool defaultBook(DateTime? date) => date == null;
+  bool get futureBook => book.from == null || book.from!.isAfter(DateTime.now());
+
+  int getProviderId(Book lastBook){
+    final lastProviderId = lastBook.providerId;
+    final sortedMembers = members;
+    sortedMembers.sort((a, b) => b.birthDate.compareTo(a.birthDate));
+    final lastProviderIndex = sortedMembers.indexWhere((element) => element.id == lastProviderId);
+    return sortedMembers[lastProviderIndex+1].id!;
+  }
+
   Future<void> init() async {
     members = await DatabaseHelper.instance.getMemberList();
     books = await DatabaseHelper.instance.getBookList();
+
+    if (books.last.from!.isBefore(DateTime.now())) {
+      books.add(Book(
+        id: -1,
+        name: null,
+        author: null,
+        pages: null,
+        image_path: null,
+        to: null,
+        description: null,
+        providerId: getProviderId(books.last),
+        from: null,
+      ));
+    }
+
     book = (await DatabaseHelper.instance.getCurrentBook()) ?? books.last;
     aspRat = MediaQuery.of(context).size.aspectRatio;
     nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
@@ -161,12 +197,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         bookCarousel(),
                         const SizedBox(height: 10,),
                         //const Spacer(flex: 1),
-                        if (book.name != null) AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
-                        if (book.name != null) if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
-                        if (book.name != null) if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (!defaultBook(book.from)) AutoSizeText(bookInfo, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (!futureBook) if (daysLeft > 0) AutoSizeText(bookDaysLeft, textAlign: TextAlign.center, minFontSize: 18,),
+                        if (!futureBook) if (daysLeft > 0) AutoSizeText(bookMinPages, textAlign: TextAlign.center, minFontSize: 18,),
                         AutoSizeText(bookProvider, textAlign: TextAlign.center, minFontSize: 16,),
-                        if (book.name == null && members.every((e) => e.veto)) const AutoSizeText(CustomStrings.veto, textAlign: TextAlign.center, minFontSize: 14,),
-                        if (book.name == null && !members.every((e) => e.veto)) const AutoSizeText(CustomStrings.vetoInfo, textAlign: TextAlign.center, minFontSize: 14,),
+                        if (futureBook && members.every((e) => e.veto)) const AutoSizeText(CustomStrings.veto, textAlign: TextAlign.center, minFontSize: 14,),
+                        if (futureBook && !members.every((e) => e.veto)) const AutoSizeText(CustomStrings.vetoInfo, textAlign: TextAlign.center, minFontSize: 14,),
                       ]
                     )
                   ),
@@ -178,10 +214,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 flex: 20, 
                 child: Row(
                   children: [
-                    if (book.name == null && aspRat > 1) const Spacer(flex: 40,),
-                    Expanded(flex: 20, child: book.name != null ? memberBoard(progressList) : votingBoard()),
-                    if (book.name == null && aspRat > 1) const Spacer(flex: 40,),
-                    if (book.name != null && aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
+                    if (futureBook && aspRat > 1) const Spacer(flex: 40,),
+                    Expanded(flex: 20, child: !futureBook ? memberBoard(progressList) : votingBoard()),
+                    if (futureBook && aspRat > 1) const Spacer(flex: 40,),
+                    if (!futureBook && aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
                   ]
                 ),
               ),
@@ -206,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
             mini: true,
             //alignment: Alignment.bottomCenter,
             onPressed: (){
-              if (book.name != null) {
+              if (!futureBook) {
                 showCommentDialog();
               }
               else {
@@ -239,9 +275,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: login! ? const Icon(Icons.login) : const Icon(Icons.logout),
                   onPressed: (){
                     if (login!) {
-                      Supabase.instance.client.auth.signOut().then((_) => setState(() => login = false));
+                      Supabase.instance.client.auth.signOut().then((_) => setState(() => (login = false, admin=null)));
                     } else {
-                      showLoginDialog(setState, context).then((value) => setState(() => login = value));
+                      showLoginDialog(setState, context).then((value) => setState(() async => (login = value, admin = await DatabaseHelper.instance.checkAdmin())));
                     }
                   },
                 ),
@@ -262,11 +298,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //Dialogs
 
+  void showAddDialog(){
+    showDialog(context: context, builder: (builder){
+      return AddDialog(lastBook: books[books.length - 2], members: members, updateBooks: () => setState(() {initItems=false;}));
+    });
+  }
+
   Future<bool> showUpdateDialog(Progress progress) async {
     login = await DatabaseHelper.instance.checkLogin();
     if (!login!){
       return Future.value(false);
     } 
+    admin = await DatabaseHelper.instance.checkAdmin();
     return await showDialog(context: context, builder: (builder){
       return UpdateDialog(book: book, progress: progress, updateProgress: (newProgress) => setState(() {
         progress = newProgress;
@@ -320,6 +363,25 @@ class _MyHomePageState extends State<MyHomePage> {
     )
   );
 
+  Widget bookPlaceholder(){
+    return admin! && book == books.last
+    ? Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/book_placeholder.jpeg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: GestureDetector(
+          onTap: () => showAddDialog(),
+          child: const Center(
+            child: Icon(Icons.add, color: Colors.black, size: 100),
+          ),
+        )
+      )
+    : Image.asset('assets/images/book_placeholder.jpeg');
+  }
+
   //Widgets
 
   Widget bookCarousel(){
@@ -346,14 +408,14 @@ class _MyHomePageState extends State<MyHomePage> {
           child: GestureDetector(
             onTap: () => setState(() {
               if(i.id == book.id){
-                if (i.name != null) aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
+                if (!defaultBook(i.from)) aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
               }
               else {
                 showDescription = false;
                 carouselSliderController.animateToPage(i.id!-1);
               }
             }),
-            child: i.name != null && showDescription && i.id == book.id 
+            child: !defaultBook(i.from) && showDescription && i.id == book.id 
               ? Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(color: bookColors[i.id]),
@@ -361,9 +423,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 ) 
               : Stack(
                 children: [
-                  i.name != null
+                  !defaultBook(i.from)
                     ? Image.network(i.image_path!)
-                    : Image.asset('assets/images/book_placeholder.jpeg'),
+                    : bookPlaceholder(),
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -403,7 +465,7 @@ class _MyHomePageState extends State<MyHomePage> {
           onPressed: () async {
             login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
             if (!login!) return;
-
+            admin = await DatabaseHelper.instance.checkAdmin();
             setState(() {
               members[i].veto = !members[i].veto;
               DatabaseHelper.instance.updateMember(members[i]);
@@ -457,7 +519,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () async {
           login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
           if (!login!) return;
-          
+          admin = await DatabaseHelper.instance.checkAdmin();
           showUpdateDialog(progress).then((value) {
             if (value) showFinishDialog();
           });
@@ -480,7 +542,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         SizedBox(
           width: MediaQuery.of(context).size.width*0.9,
-          child: book.name != null ? progressIndicator(progress) : Container(),
+          child: !futureBook ? progressIndicator(progress) : Container(),
         )
       ]
     );
@@ -494,7 +556,7 @@ class _MyHomePageState extends State<MyHomePage> {
         const Spacer(flex: 1,),
         Expanded(
           flex: 30,
-          child: book.name != null ? progressIndicator(progress) : Container(),
+          child: !futureBook ? progressIndicator(progress) : Container(),
         ),
         const Spacer(flex: 1,),
         rating(progress),
@@ -532,7 +594,7 @@ class _MyHomePageState extends State<MyHomePage> {
             onTap: () async {
               login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
               if (!login!) return;
-
+              admin = await DatabaseHelper.instance.checkAdmin();
               if (progress.rating == index+1){
                 progress.rating = 0;
               } else {

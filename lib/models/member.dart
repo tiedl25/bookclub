@@ -6,8 +6,9 @@ class Member{
   int color;
   bool veto;
   Uint8List? profilePicture;
+  DateTime birthDate;
 
-  Member({this.id, required this.name, required this.color, required this.veto, this.profilePicture});
+  Member({this.id, required this.name, required this.color, required this.veto, this.profilePicture, required this.birthDate});
 
   Map<String, dynamic> toMap() => {
     'name': name,
@@ -21,6 +22,7 @@ class Member{
       name: map['name'],
       color: map['color'],
       veto: map['veto'],
+      birthDate: DateTime.parse(map['birthdate']),
     );
   }
 }
