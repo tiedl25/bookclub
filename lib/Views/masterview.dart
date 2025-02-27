@@ -50,11 +50,11 @@ class _MyHomePageState extends State<MyHomePage> {
   bool? admin;
 
   _MyHomePageState() {
-    DatabaseHelper.instance.checkLogin().then((value) async {
-      DatabaseHelper.instance.checkAdmin().then((value) {
+    DatabaseHelper.instance.checkLogin().then((loginValue) async {
+      DatabaseHelper.instance.checkAdmin().then((adminValue) {
         setState(() {
-          login = value;
-          admin = value;
+          login = loginValue;
+          admin = adminValue;
         });
       });
     }
@@ -275,9 +275,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: login! ? const Icon(Icons.login) : const Icon(Icons.logout),
                   onPressed: (){
                     if (login!) {
-                      Supabase.instance.client.auth.signOut().then((_) => setState(() => (login = false, admin=null)));
+                      Supabase.instance.client.auth.signOut().then((_) => setState(() => (login = false, admin=false)));
                     } else {
-                      showLoginDialog(setState, context).then((value) => setState(() async => (login = value, admin = await DatabaseHelper.instance.checkAdmin())));
+                      showLoginDialog(setState, context).then((loginValue) => DatabaseHelper.instance.checkAdmin().then((adminValue) {
+                        setState(() {
+                            login = loginValue;
+                            admin = adminValue;
+                          });
+                        })
+                      );
                     }
                   },
                 ),
