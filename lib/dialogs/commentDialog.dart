@@ -261,7 +261,7 @@ class _CommentDialogState extends State<CommentDialog> {
     return CustomDialog(
       padding: 5,
       fullWindow: true,
-      content: commentBoard(),
+      content: Expanded(child: commentBoard()),
     );
   }
 

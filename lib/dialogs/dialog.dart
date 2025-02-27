@@ -36,8 +36,12 @@ class CustomDialog extends StatelessWidget {
       children: [
         if (title != null) DefaultTextStyle(style: Theme.of(context).textTheme.titleLarge!, child: title!),
         if (title != null) SizedBox(height: padding),
-        Expanded(child: SingleChildScrollView(child: content)),
-        if (submitButton != null) submitButton!,
+        content,
+        if (submitButton != null) ...[
+          if (fullWindow) const Spacer(),
+          const SizedBox(height: 10),
+          submitButton!,
+        ],
       ],
     );
   }
