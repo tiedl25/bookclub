@@ -234,7 +234,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: aspRat < 1 ? Row(
+      floatingActionButton: phone ? Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(flex: 3,),
@@ -358,7 +358,7 @@ class _MyHomePageState extends State<MyHomePage> {
       book.description ?? '', 
       onTap: () => setState(() {
         if(i.id == book.id){
-          aspRat < 1 ? null : showDescription = !showDescription;
+          phone ? null : showDescription = !showDescription;
         }
         else {
           showDescription = false;
@@ -395,7 +395,7 @@ class _MyHomePageState extends State<MyHomePage> {
       carouselController: carouselSliderController,
       options: CarouselOptions(
         height: MediaQuery.of(context).size.height/(aspRat<1 ? 3 : 2),
-        viewportFraction: aspRat < 1 ? 0.25/aspRat : 0.4/aspRat,
+        viewportFraction: phone ? 0.25/aspRat : 0.4/aspRat,
         initialPage: book.id!-1,
         enableInfiniteScroll: false,
         reverse: false,
@@ -414,7 +414,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: GestureDetector(
             onTap: () => setState(() {
               if(i.id == book.id){
-                if (!defaultBook(i.from)) aspRat < 1 ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
+                if (!defaultBook(i.from)) phone ? showDescriptionDialog(bookColors[i.id]!, i) : showDescription = !showDescription;
               }
               else {
                 showDescription = false;
@@ -455,7 +455,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget votingBoard(){
     return GridView.builder(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.only(top: 10, left: 10, right: 10, bottom: phone ? 70 : 10),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
@@ -495,16 +495,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget memberBoard(List<Progress> progressList){
-    return SizedBox(
-      child: ListView.builder(
-        physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        itemCount: progressList.length+1,
-        itemBuilder: (context, i) {
-          if (i == progressList.length) return const SizedBox(height: 70);
-          return aspRat < 1 ? mobileProgress(progressList[i]) : desktopProgress(progressList[i]);
-        }
-      ),
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+      padding: EdgeInsets.only(left: 10, right: 10, top: 10, bottom: phone ? 70 : 10),
+      itemCount: progressList.length,
+      itemBuilder: (context, i) {
+        //if (i == progressList.length) return const SizedBox(height: 70);
+        return phone ? mobileProgress(progressList[i]) : desktopProgress(progressList[i]);
+      }
     );
   }
 
