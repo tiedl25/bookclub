@@ -396,7 +396,7 @@ class _MyHomePageState extends State<MyHomePage> {
       options: CarouselOptions(
         height: MediaQuery.of(context).size.height/(aspRat<1 ? 3 : 2),
         viewportFraction: phone ? 0.25/aspRat : 0.4/aspRat,
-        initialPage: book.id!-1,
+        initialPage: books.indexWhere((b) => b.id == book.id),
         enableInfiniteScroll: false,
         reverse: false,
         autoPlay: false,
