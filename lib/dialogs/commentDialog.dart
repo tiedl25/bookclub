@@ -43,8 +43,9 @@ class _CommentDialogState extends State<CommentDialog> {
     if(value == ''){
       return;
     }
+    final memberId = members[selectedMember-1].id!;
     editComment.add(false);
-    DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: selectedMember)).then((value) => setState(() => comments.add(Comment.fromMap(value[0]))));  
+    DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: memberId)).then((value) => setState(() => comments.add(Comment.fromMap(value[0]))));  
   }
 
   void showDeleteDialog(Comment comment) {
@@ -90,7 +91,7 @@ class _CommentDialogState extends State<CommentDialog> {
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.only(left: 50, right: 10, top: 10, bottom: 10),
               filled: true,
-              fillColor: Color(members.firstWhere((element) => element.id == selectedMember).color),
+              fillColor: Color(members[selectedMember-1].color),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: SpecialColors.commentTextcolor)),
               labelText: members[selectedMember-1].name,
