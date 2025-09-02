@@ -184,15 +184,16 @@ class _MyHomePageState extends State<MyHomePage> {
           if (!snapshot.hasData){
             return const Center(child: CircularProgressIndicator());
           }
-          return Column(
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Spacer(flex: 1),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 30, 
-                    child: Column(
+              Expanded(
+                flex: 70,
+                child: Column(
+                  children: [
+                    const Spacer(flex: 1),
+                    Column(
                       children: [
                         bookCarousel(),
                         const SizedBox(height: 10,),
@@ -204,24 +205,33 @@ class _MyHomePageState extends State<MyHomePage> {
                         if (futureBook && members.every((e) => e.veto)) const AutoSizeText(CustomStrings.veto, textAlign: TextAlign.center, minFontSize: 14,),
                         if (futureBook && !members.every((e) => e.veto)) const AutoSizeText(CustomStrings.vetoInfo, textAlign: TextAlign.center, minFontSize: 14,),
                       ]
-                    )
-                  ),
-                  if (aspRat > 1) Expanded(flex: 5, child: StatisticsDialog(device: Device.desktop, members: members, books: books)), const Spacer(flex: 1,)
-                ]
-              ),
-              const Divider(),
-              Expanded(
-                flex: 20, 
-                child: Row(
-                  children: [
-                    if (futureBook && aspRat > 1) const Spacer(flex: 40,),
+                    ),
+                    const Divider(),
                     Expanded(flex: 20, child: !futureBook ? memberBoard(progressList) : votingBoard()),
-                    if (futureBook && aspRat > 1) const Spacer(flex: 40,),
-                    if (!futureBook && aspRat > 1) Expanded(flex: 10, child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
                   ]
                 ),
               ),
-            ]
+              const VerticalDivider(),
+              if (!phone) Expanded(
+                flex: 30,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!phone) Expanded(
+                      child: SizedBox(
+                        //height: MediaQuery.of(context).size.height*0.7,
+                        child: SingleChildScrollView(
+                          child: StatisticsDialog(device: Device.desktop, members: members, books: books)
+                        )
+                      )
+                    ), 
+                    if (!futureBook && !phone) const Divider(),
+                    //if (futureBook && !phone) const Spacer(flex: 40,),
+                    if (!futureBook && !phone) Expanded(child: CommentDialog(device: Device.desktop, comments: comments, members: members, book: book, nameMaxLength: nameMaxLength,)),
+                  ]
+                ),
+              ),
+            ],
           );
         },
       )
