@@ -51,7 +51,7 @@ class CustomDialog extends StatelessWidget {
     this.context = context;
 
     return PopScope(
-      onPopInvokedWithResult: (_, confirmed) => confirmed as bool ? true : false,
+      onPopInvokedWithResult: (_, confirmed) => confirmed is bool ? confirmed : false,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: Dialog(

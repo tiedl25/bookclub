@@ -1,52 +1,16 @@
+import 'package:bookclub/bloc/masterview_bloc.dart';
+import 'package:bookclub/bloc/masterview_states.dart';
 import 'package:bookclub/models/comment.dart';
-import 'package:bookclub/database.dart';
-import 'package:bookclub/models/book.dart';
-import 'package:bookclub/models/member.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:bookclub/utils.dart';
 import 'package:flutter/material.dart' hide Dialog;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CommentDialog extends StatefulWidget {
-  const CommentDialog({super.key, required this.device, required this.comments, required this.members, required this.book, required this.nameMaxLength});
-  final List<Member> members;
-  final Book book;
-  final List<Comment> comments;
-  final double nameMaxLength;
-
-  final Device device;
-
-  @override
-  State<CommentDialog> createState() => _CommentDialogState();
-}
-
-class _CommentDialogState extends State<CommentDialog> {
-  late final List<Member> members;
-  late final Book book;
-  late List<Comment> comments;
-  int selectedMember = 1;
-  late final double nameMaxLength;
-  late List<bool> editComment;
-
-  @override
-  void initState() {
-    super.initState();
-    members = widget.members;
-    book = widget.book;
-    comments = widget.comments;
-    editComment = List.generate(comments.length, (index) => false);
-    nameMaxLength = widget.nameMaxLength;
-  }
-
-  void addComment(String value){
-    if(value == ''){
-      return;
-    }
-    final memberId = members[selectedMember-1].id!;
-    editComment.add(false);
-    DatabaseHelper.instance.addComment(Comment(text: value, bookId: book.id!, memberId: memberId)).then((value) => setState(() => comments.add(Comment.fromMap(value[0]))));  
-  }
+mixin CommentMixin on StatelessWidget {
+  late BuildContext context;
+  late MasterViewCubit cubit;
 
   void showDeleteDialog(Comment comment) {
     showDialog(context: context, builder: (builder){
@@ -54,22 +18,17 @@ class _CommentDialogState extends State<CommentDialog> {
         title: const Text(CustomStrings.deleteCommentDialogTitle),
         content: const Text(CustomStrings.deleteCommentDialogContent),
         submitButton: TextButton(
-          onPressed: (){
-            setState(() {
-                DatabaseHelper.instance.deleteComment(comment.id!); 
-                editComment.removeAt(comments.indexOf(comment));
-                comments.remove(comment);
-              }
-            );
-            Navigator.pop(context);
-          },
+          onPressed: () => [
+            cubit.deleteComment(comment),
+            Navigator.pop(context)
+          ],
           child: Text("Delete", style: TextStyle(fontSize: Theme.of(context).textTheme.titleMedium!.fontSize)),
         )
       );
     });
   }
 
-  Widget commentField(){
+  Widget commentField(MasterViewLoaded state) {
     final commentController = TextEditingController();
 
     return Container(
@@ -86,15 +45,19 @@ class _CommentDialogState extends State<CommentDialog> {
             cursorColor: SpecialColors.commentTextcolor,
             maxLines: 5,
             minLines: 1,
-            onSubmitted: (value) => addComment(value),
+            onSubmitted: (value) async {
+              bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
+              if (!login!) return;
+              cubit.addComment(login, value);
+            },
             controller: commentController,
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.only(left: 50, right: 10, top: 10, bottom: 10),
               filled: true,
-              fillColor: Color(members[selectedMember-1].color),
+              fillColor: Color(state.members[state.selectedMember-1].color),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: SpecialColors.commentTextcolor)),
-              labelText: members[selectedMember-1].name,
+              labelText: state.members[state.selectedMember-1].name,
               labelStyle: const TextStyle(color: SpecialColors.commentTextcolor),
               floatingLabelStyle: const TextStyle(),
             ),
@@ -102,14 +65,13 @@ class _CommentDialogState extends State<CommentDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              commentDropDown(setState), 
+              commentDropDown(state), 
               IconButton(
                 icon: const Icon(Icons.send, color: SpecialColors.commentTextcolor), 
                 onPressed: () async {
-                  final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
-                  if (!login) return;
-
-                  addComment(commentController.text);
+                  bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
+                  if (!login!) return;
+                  cubit.addComment(login, commentController.text);
                 }
               ),
             ]
@@ -119,41 +81,37 @@ class _CommentDialogState extends State<CommentDialog> {
     );
   }
 
-  Widget commentDropDown([void Function(VoidCallback fn)? setState]){
+  Widget commentDropDown(MasterViewLoaded state) {
     return DropdownMenu(
       trailingIcon: const Icon(Icons.person, color: SpecialColors.commentTextcolor),
       selectedTrailingIcon: const Icon(Icons.person, color: SpecialColors.commentTextcolor),
       width: 50,
       textStyle: const TextStyle(fontSize: 0),
-      initialSelection: selectedMember,
+      initialSelection: state.selectedMember,
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(15),),
       ),
       menuStyle: MenuStyle(
-        fixedSize: WidgetStateProperty.all(Size.fromWidth(nameMaxLength)),
+        fixedSize: WidgetStateProperty.all(Size.fromWidth(state.nameMaxLength)),
         shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
       ),
       dropdownMenuEntries: List.generate(
-        members.length, 
+        state.members.length,
         (index) {
           return DropdownMenuEntry(
-            label: members[index].name,
+            label: state.members[index].name,
             value: index+1,
           );
         }
       ),
-      onSelected: (value) {
-        (setState ?? this.setState)(() {
-          selectedMember = value ?? 1;
-        });
-      },
+      onSelected: (value) => cubit.selectMember(value),
     );
   }
 
-  Widget comment(Comment comment, int i){
+  Widget comment(MasterViewLoaded state, int i){
     const emptySpace = "                   ‎";
-    final commentController = TextEditingController(text: "${comment.text}$emptySpace");
-    final member = members.firstWhere((element) => element.id == comment.memberId);
+    final commentController = TextEditingController(text: "${state.comments[i].text}$emptySpace");
+    final member = state.members.firstWhere((element) => element.id == state.comments[i].memberId);
     final memberName = "${member.name}$emptySpace";
 
     return Stack(
@@ -161,7 +119,7 @@ class _CommentDialogState extends State<CommentDialog> {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
-            color: Color(members.firstWhere((element) => element.id == comment.memberId).color),
+            color: Color(state.members.firstWhere((element) => element.id == state.comments[i].memberId).color),
           ),
           padding: const EdgeInsets.all(5),
           margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
@@ -169,7 +127,7 @@ class _CommentDialogState extends State<CommentDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
-                    readOnly: !editComment[i],
+                    readOnly: !state.comments[i].editMode,
                     maxLines: null,
                     style: const TextStyle(fontSize: 15, color: SpecialColors.commentTextcolor),
                     controller: commentController,
@@ -196,38 +154,31 @@ class _CommentDialogState extends State<CommentDialog> {
           child: Padding(padding: const EdgeInsets.all(10), 
             child: Row(
               children: [
-                editComment[i] 
+                state.comments[i].editMode
                   ? IconButton(
                       onPressed: () async {
-                        final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
-                        if (!login) return;
-
-                        comment.text = commentController.text.replaceAll("‎", "");
-                        comment.text = comment.text.trim();
-                        if (comment.text != '') {
-                          DatabaseHelper.instance.updateComment(Comment(id: comment.id, text: comment.text, bookId: comment.bookId, memberId: comment.memberId));
-                          setState(() => editComment[i] = !editComment[i]);
-                        }
+                        bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
+                        if (!login!) return;
+                        cubit.updateComment(login, commentController.text, i);
                       },
                       icon: const Icon(Icons.check, color: SpecialColors.commentTextcolor, size: 15)
                     ) 
                   : IconButton(
                       onPressed: () async {
-                        final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
-                        if (!login) return;
-
-                        showDeleteDialog(comment);
+                        bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
+                        if (!login!) return;
+                        cubit.updateLogin(login);
+                        showDeleteDialog(state.comments[i]);
                       },
                       icon: const Icon(Icons.delete, color: SpecialColors.commentTextcolor, size: 15)
                     ),
                     IconButton(
                       onPressed: () async {
-                        final login = await showLoginDialog(setState, context, CustomStrings.loginDialogTitle);
-                        if (!login) return;
-
-                        setState(() => editComment[i] = !editComment[i]);
+                        bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
+                        if (!login!) return;
+                        cubit.toggleEditMode(login, i);
                       },
-                      icon: Icon(editComment[i] ? Icons.close : Icons.edit, color: SpecialColors.commentTextcolor, size: 15)
+                      icon: Icon(state.comments[i].editMode ? Icons.close : Icons.edit, color: SpecialColors.commentTextcolor, size: 15)
                     )
               ]
             )
@@ -238,42 +189,53 @@ class _CommentDialogState extends State<CommentDialog> {
   }
 
   Widget commentBoard(){
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-            padding: const EdgeInsets.only(top: 10),
-            itemCount: comments.length,
-            itemBuilder: (BuildContext context, int i) {
-              return Align(
-                alignment: Alignment.topLeft,
-                child: comment(comments[i], i),
-              );
-            },
-          ),
-        ),
-        commentField()
-      ]
+    return BlocBuilder<MasterViewCubit, MasterViewState>(
+      builder: (context, state) {
+        state as MasterViewLoaded;
+
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
+                padding: const EdgeInsets.only(top: 10),
+                itemCount: state.comments.length,
+                itemBuilder: (BuildContext context, int i) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: comment(state, i),
+                  );
+                },
+              ),
+            ),
+            commentField(state)
+          ],
+        );
+      },
     );
   }
+}
 
-  Widget phone(){
+class CommentDialog extends StatelessWidget with CommentMixin {
+  @override
+  Widget build(BuildContext context) {
+    this.context = context;
+    cubit = context.read<MasterViewCubit>();
+
     return CustomDialog(
       padding: 5,
       fullWindow: true,
       content: Expanded(child: commentBoard()),
     );
   }
+}
 
-  Widget desktop(){
-    return commentBoard();
-  }
-
+class CommentTile extends StatelessWidget with CommentMixin {
   @override
   Widget build(BuildContext context) {
-    comments = widget.comments;
+    this.context = context;
+    cubit = context.read<MasterViewCubit>();
 
-    return widget.device == Device.phone ? phone() : desktop();
+    return commentBoard();
   }
 }

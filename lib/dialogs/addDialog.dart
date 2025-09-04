@@ -1,23 +1,14 @@
-import 'package:bookclub/database.dart';
+import 'package:bookclub/bloc/masterview_bloc.dart';
 import 'package:bookclub/dialogs/dialog.dart';
-import 'package:bookclub/models/book.dart';
-import 'package:bookclub/models/member.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:bookclub/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AddDialog extends StatefulWidget {
-  final Book lastBook;
-  final List<Member> members;
-  final Function() updateBooks;
+class AddDialog extends StatelessWidget {
+  late BuildContext context;
+  late MasterViewCubit cubit;
 
-  const AddDialog({super.key, required this.lastBook, required this.members, required this.updateBooks});
-
-  @override
-  _AddDialogState createState() => _AddDialogState();
-}
-
-class _AddDialogState extends State<AddDialog> {
   final _formKey = GlobalKey<FormState>();
 
   late String title;
@@ -25,49 +16,6 @@ class _AddDialogState extends State<AddDialog> {
   late int pageNr;
   late String description;
   late String imagePath;
-
-  DateTimeRange getDateRange(){
-    DateTime startDate = widget.lastBook.to!.add(const Duration(days: 1));
-    DateTime endDate = DateTime(startDate.year, startDate.month + 3, 0);
-    return DateTimeRange(start: startDate, end: endDate);
-  }
-
-  int getProviderId(){
-    final lastProviderId = widget.lastBook.providerId;
-    widget.members.sort((a, b) => b.birthDate.compareTo(a.birthDate));
-    final lastProviderIndex = widget.members.indexWhere((element) => element.id == lastProviderId);
-    return widget.members[lastProviderIndex+1].id!;
-  }
-
-  void addBook() async {
-    if(!_formKey.currentState!.validate()){
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(CustomStrings.addDialogValidationError)));
-    }
-    
-    _formKey.currentState!.save();
-
-    DateTimeRange dateRange = getDateRange();
-    int providerId = getProviderId();
-
-    /*
-    Add progresses for every user
-    */
-
-    await DatabaseHelper.instance.addBook(
-      Book(
-        name: title,
-        author: author,
-        description: description,
-        image_path: imagePath,
-        pages: pageNr,
-        from: dateRange.start,
-        to: dateRange.end,
-        providerId: providerId,
-      )
-    );
-
-    widget.updateBooks();
-  }
 
   validateFormField(String? value) {
     if (value == null || value.isEmpty) {
@@ -87,6 +35,9 @@ class _AddDialogState extends State<AddDialog> {
 
   @override
   Widget build(BuildContext context) {
+    context = context;
+    cubit = context.read<MasterViewCubit>();
+
     return CustomDialog(
       fullWindow: true,
       title: const Text(CustomStrings.addDialogTitle),
@@ -144,7 +95,7 @@ class _AddDialogState extends State<AddDialog> {
       ),
       submitButton: TextButton(
         child: const Text(CustomStrings.addSubmitButton),
-        onPressed: () => { addBook(), Navigator.of(context).pop() },
+        onPressed: () => [cubit.addBook(_formKey, title, author, pageNr, description, imagePath), Navigator.of(context).pop()],
       ),
     );
   }

@@ -3,13 +3,14 @@ class Comment{
   String text;
   int? bookId;
   int? memberId;
+  bool editMode;
 
-  Comment({this.id, required this.text, this.bookId, this.memberId});
+  Comment({this.id, required this.text, this.bookId, this.memberId, this.editMode = false});
 
   Map<String, dynamic> toMap() => {
     'text': text,
     'book': bookId,
-    'member': memberId
+    'member': memberId,
   };
 
   factory Comment.fromMap(Map<String, dynamic> map) {

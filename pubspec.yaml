@@ -42,6 +42,7 @@ dependencies:
   palette_generator: any
   image: any
   flutter_dotenv: ^5.2.1
+  flutter_bloc: any
 
 dev_dependencies:
   flutter_test:

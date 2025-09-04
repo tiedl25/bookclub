@@ -1,27 +1,15 @@
+import 'package:bookclub/bloc/statisticsDialog_bloc.dart';
+import 'package:bookclub/bloc/statisticsDialog_states.dart';
 import 'package:bookclub/resources/colors.dart';
-import 'package:bookclub/database.dart';
-import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/dialogs/dialog.dart';
-import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:flutter/material.dart' hide Dialog;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class StatisticsDialog extends StatefulWidget {
-  const StatisticsDialog({super.key, required this.device, required this.members, required this.books});
-  final List<Member> members;
-  final List<Book> books;
-
-  final Device device;
-
-  @override
-  State<StatisticsDialog> createState() => _StatisticsDialogState();
-}
-
-class _StatisticsDialogState extends State<StatisticsDialog> {
-  late Future<List<Progress>> progressFuture;
-  late List<Progress> progress;
-  late final List<Book> books;
+mixin StatisticsMixin on StatelessWidget {
+  late BuildContext context;
+  late StatisticsDialogCubit cubit;
 
   final icons = [
   const Icon(Icons.star, color: SpecialColors.gold, size: 40),
@@ -30,29 +18,8 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
     Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Icon(Icons.book, color: SpecialColors.bookSelectedColor, size: 20))
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    progressFuture = DatabaseHelper.instance.getProgressList();
-    books = widget.books.where((b) => b.name != null).toList();
-  }
-
-  Map<String, double> nominateShamePerson() {
-    Map<String, double> progressByMember = {};
-
-    for (var member in widget.members){
-      var memberProgress = progress.where((element) => element.memberId == member.id);
-      if (memberProgress.isNotEmpty){
-        final parts = memberProgress.map((e) => e.page / (e.maxPages ?? books.firstWhere((b) => b.id == e.bookId).pages!)).toList();
-        double overalProgress = parts.reduce((element, value) => element + value) / parts.length;
-        progressByMember[member.name] = overalProgress;
-      }
-    }
-    return Map.fromEntries(progressByMember.entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
-  }
-
-  Widget wallOfShame() {
-    final progressByMember = nominateShamePerson().entries.toList();
+  Widget wallOfShame(List<Member> members){
+    final progressByMember = cubit.nominateShamePerson().entries.toList();
 
     int iconIndex=0;
     final memberIcons = [];
@@ -76,7 +43,7 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
           itemBuilder: (context, index) {
             final e = progressByMember[index];
 
-            final member = widget.members.firstWhere((element) => element.name == e.key);
+            final member = members.firstWhere((element) => element.name == e.key);
 
             return Row(
               mainAxisAlignment: MainAxisAlignment.start, 
@@ -107,21 +74,8 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
     );
   }
 
-  Map<String, double> bookRatingList(){
-    Map<String, double> ratingByBook = {};
-    for (var book in books){
-      var bookProgress = progress.where((element) => element.bookId == book.id && element.rating != null && element.page > 0);
-      if (bookProgress.isNotEmpty){
-        final parts = bookProgress.map((e) => e.rating ?? 0).toList();
-        double overalRating = parts.reduce((element, value) => element + value) / parts.length;
-        ratingByBook[book.name!] = overalRating;
-      }
-    }
-    return Map.fromEntries(ratingByBook.entries.toList()..sort((e1, e2) => e2.value.compareTo(e1.value)));
-  }
-
-  Widget bestRankedBook(){
-    final ratingByBook = bookRatingList().entries.toList();
+  Widget bestRankedBook() {
+    final ratingByBook = cubit.bookRatingList().entries.toList();
 
     int iconIndex=0;
     final bookIcons = [];
@@ -168,47 +122,57 @@ class _StatisticsDialogState extends State<StatisticsDialog> {
       ]
     );
   }
+}
 
-  Widget phone(){
-    return CustomDialog(
-      padding: 5,
-      fullWindow: true,
-      content: Container(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            wallOfShame(),
-            const SizedBox(height: 30),
-            bestRankedBook()
-          ]
-        )
-      ),
-    );
-  }
-
-  Widget desktop(){
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          wallOfShame(),
-          const SizedBox(height: 50),
-          bestRankedBook()
-        ]
-      )
-    );
-  }
-
+class StatisticsDialog extends StatelessWidget with StatisticsMixin {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: progressFuture, 
-      builder: (BuildContext context, AsyncSnapshot<List<Progress>> snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        if (snapshot.data!.isNotEmpty) progress = snapshot.data!;
+    context = context;
+    cubit = context.read<StatisticsDialogCubit>();
 
-        return widget.device == Device.phone ? phone() : desktop();
-      }
+    return BlocBuilder<StatisticsDialogCubit, StatisticsDialogState>(
+      buildWhen: (_, current) => current is StatisticsDialogLoaded || current is StatisticsDialogLoading,
+      builder: (context, state) => state is StatisticsDialogLoaded
+        ? CustomDialog(
+            padding: 5,
+            fullWindow: true,
+            content: Container(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  wallOfShame(state.members),
+                  const SizedBox(height: 30),
+                  bestRankedBook()
+                ]
+              )
+            ),
+          )
+        : const Center(child: CircularProgressIndicator()),
+      
+    );
+  }
+}
+
+class StatisticsTile extends StatelessWidget with StatisticsMixin {
+  @override
+  Widget build(BuildContext context) {
+    context = context;
+    cubit = context.read<StatisticsDialogCubit>();
+
+    return BlocBuilder<StatisticsDialogCubit, StatisticsDialogState>(
+      buildWhen: (_, current) => current is StatisticsDialogLoaded || current is StatisticsDialogLoading,
+      builder: (context, state) => state is StatisticsDialogLoaded
+        ? Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                wallOfShame(state.members),
+                const SizedBox(height: 50),
+                bestRankedBook()
+              ]
+            )
+          )
+        : const Center(child: CircularProgressIndicator()),
       
     );
   }

@@ -1,6 +1,8 @@
+import 'package:bookclub/bloc/masterview_bloc.dart';
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'Views/masterview.dart';
 
@@ -30,7 +32,12 @@ class _MyAppState extends State<MyApp> {
         colorScheme: currentTheme == ThemeMode.light ? lighttheme : darktheme,
         useMaterial3: true,
       ),
-      home: MyHomePage(title: CustomStrings.appDesription, changeTheme: (value) => setState(() => currentTheme = value),),
+      home: BlocProvider(
+        create: (context) => MasterViewCubit((value) => setState(() {
+          currentTheme = value;
+        })),
+        child: MasterView(),
+      ),
     );
   }
 }

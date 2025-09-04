@@ -8,6 +8,7 @@ class Book{
   DateTime? to;
   String? description;
   int? providerId;
+  int? color;
 
   Book({this.id, required this.name, required this.image_path, required this.author, required this.pages, required this.from, required this.to, required this.description, required this.providerId});
 
