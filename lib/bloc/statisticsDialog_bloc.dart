@@ -29,7 +29,7 @@ class StatisticsDialogCubit extends Cubit<StatisticsDialogState> {
     Map<String, double> progressByMember = {};
 
     for (var member in newState.members){
-      var memberProgress = newState.progressList.where((element) => element.memberId == member.id);
+      var memberProgress = newState.progressList.where((element) => element.memberId == member.id && element.bookId != newState.books.last.id);
       if (memberProgress.isNotEmpty){
         final parts = memberProgress.map((e) => e.page / (e.maxPages ?? newState.books.firstWhere((b) => b.id == e.bookId).pages!)).toList();
         double overalProgress = parts.reduce((element, value) => element + value) / parts.length;
