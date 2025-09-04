@@ -311,15 +311,22 @@ class MasterView extends StatelessWidget {
 
   void showDescriptionDialog() {
     showDialog(
-        context: context,
-        builder: (builder) {
-          return CustomDialog(
-              backgroundColor: Color(book.color!), content: description(book));
-        });
+      context: context,
+      builder: (builder) {
+        return CustomDialog(
+          backgroundColor: Color(book.color!), 
+          content: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+            ),
+            child: description(book))
+        );
+      });
   }
 
   Widget description(Book i) => SingleChildScrollView(
-      child: SelectableText(book.description ?? '',
+      child: SelectableText(i.description ?? '',
           onTap: () => cubit.toggleDescription(i.id!, phone),
           style: TextStyle(
               color: Color(i.color!).computeLuminance() > 0.2
