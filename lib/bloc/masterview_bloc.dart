@@ -9,6 +9,7 @@ import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:bookclub/result.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:http/http.dart' as http;
@@ -29,9 +30,20 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     return sortedMembers[lastProviderIndex+1].id!;
   }
 
-  Future<Color?> getDominantColor(String? imagePath) async {
+  String compressedImagePath(String imagePath) {
+    imagePath = imagePath.replaceAll("https://images-na.ssl-images-amazon.com/", "https://i.gr-assets.com/");
+    imagePath = imagePath.replaceAll(".jpg", "._SY75_.jpg");
+
+    return imagePath;
+  }
+
+  Future<Color?> getDominantColor(String? imagePath,[bool compressed = true]) async {
     if (imagePath == null) {
       return Colors.white;
+    }
+
+    if (compressed) {
+      imagePath = compressedImagePath(imagePath);
     }
 
     final response = await http.get(Uri.parse(imagePath));
@@ -55,15 +67,10 @@ class MasterViewCubit extends Cubit<MasterViewState> {
       final admin = await DatabaseHelper.instance.checkAdmin();
       final members = await DatabaseHelper.instance.getMemberList();
       final books = await DatabaseHelper.instance.getBookList();
-
       final Book book = (await DatabaseHelper.instance.getCurrentBook()) ?? books.last;
-      book.color = (await getDominantColor(book.image_path) ?? Colors.white).toARGB32();
+      book.color = (await getDominantColor(book.imagePath) ?? Colors.white).toARGB32();
       final double nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*7;
       final List<String> finishSentences = await DatabaseHelper.instance.getFinishSentences();
-      
-      await Future.wait(books.map((b) async {
-        b.color = (await getDominantColor(b.image_path) ?? Colors.white).toARGB32();
-      }));
 
       final comments = await DatabaseHelper.instance.getComments(book.id!);
       final progressList = await DatabaseHelper.instance.getProgressList(book.id!);
@@ -74,7 +81,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
           name: null,
           author: null,
           pages: null,
-          image_path: null,
+          imagePath: null,
           to: null,
           description: null,
           providerId: getProviderId(books.last, members),
@@ -82,7 +89,14 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         ));
       }
 
-      emit(MasterViewLoaded(
+      for (Book b in books) {
+        b.color ??= Colors.white.toARGB32();
+        if (b.id == book.id) {
+          b.color = book.color;
+        }
+      }
+
+      final newState = MasterViewLoaded(
         login: login,
         admin: admin,
         members: members,
@@ -92,7 +106,13 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         finishSentences: finishSentences,
         comments: comments,
         progressList: progressList,
-      ));
+      );
+
+      Future.wait(books.map((b) async {
+        b.color = (await getDominantColor(b.imagePath) ?? Colors.white).toARGB32();
+      })).then((_) => emit(newState..books = books));
+
+      emit(newState);
     } catch (e) {
       // On error, emit the error state
       emit(MasterViewError(message: e.toString()));
@@ -336,7 +356,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         name: title,
         author: author,
         description: description,
-        image_path: imagePath,
+        imagePath: imagePath,
         pages: pageNr,
         from: dateRange.start,
         to: dateRange.end,

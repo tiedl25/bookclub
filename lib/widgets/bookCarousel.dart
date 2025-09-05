@@ -3,6 +3,7 @@ import 'package:bookclub/bloc/masterview_states.dart';
 import 'package:bookclub/dialogs/addDialog.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/models/book.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -115,7 +116,17 @@ class BookCarousel extends StatelessWidget {
                     child: description(i))
                   : Stack(children: [
                     !defaultBook(i.from)
-                        ? Image.network(i.image_path!)
+                        ? CachedNetworkImage(
+                            imageUrl: i.image_path!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            placeholder: (context, url) => CircularProgressIndicator(
+                              color: Color(i.color!),
+                            ),
+                            errorWidget: (context, url, error) =>
+                                bookPlaceholder(state),
+                        )
                         : bookPlaceholder(state),
                     Positioned(
                         bottom: 0,

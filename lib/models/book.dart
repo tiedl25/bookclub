@@ -3,18 +3,19 @@ class Book{
   String? name;
   String? author;
   int? pages;
-  String? image_path;
+  String? imagePath;
   DateTime? from;
   DateTime? to;
   String? description;
   int? providerId;
   int? color;
 
-  Book({this.id, required this.name, required this.image_path, required this.author, required this.pages, required this.from, required this.to, required this.description, required this.providerId});
+  Book({this.id, required this.name, required this.imagePath, required this.author, required this.pages, required this.from, required this.to, required this.description, required this.providerId});
+
 
   Map<String, dynamic> toMap() => {
     'name': name,
-    'image_path': image_path,
+    'image_path': imagePath,
     'author': author,
     'pages': pages,
     'from': from!.toIso8601String(),
@@ -27,7 +28,7 @@ class Book{
     return Book(
       id: map['id'],
       name: map['name'],
-      image_path: map['image_path'],
+      imagePath: map['image_path'],
       author: map['author'],
       pages: map['pages'],
       from: DateTime.parse(map['from']),
