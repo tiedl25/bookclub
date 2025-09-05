@@ -397,12 +397,18 @@ class MasterView extends StatelessWidget {
 
   Widget mobileProgress(state, Progress progress) {
     return Column(children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ...progressDescription(state, progress),
-          Expanded(child: rating(progress)),
-        ],
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ...progressDescription(state, progress),
+              Expanded(child: rating(progress)),
+            ],
+          ),
+        ),
       ),
       SizedBox(
         width: MediaQuery.of(context).size.width * 0.9,

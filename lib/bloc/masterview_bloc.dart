@@ -58,7 +58,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
 
       final Book book = (await DatabaseHelper.instance.getCurrentBook()) ?? books.last;
       book.color = (await getDominantColor(book.image_path) ?? Colors.white).toARGB32();
-      final double nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*10;
+      final double nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*7;
       final List<String> finishSentences = await DatabaseHelper.instance.getFinishSentences();
       
       await Future.wait(books.map((b) async {
