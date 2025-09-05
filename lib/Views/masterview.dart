@@ -4,7 +4,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bookclub/bloc/masterview_bloc.dart';
 import 'package:bookclub/bloc/masterview_states.dart';
 import 'package:bookclub/bloc/statisticsDialog_bloc.dart';
-import 'package:bookclub/dialogs/addDialog.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/dialogs/updateDialog.dart';
 import 'package:bookclub/resources/colors.dart';
@@ -15,7 +14,7 @@ import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:bookclub/utils.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:bookclub/widgets/bookCarousel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -66,7 +65,10 @@ class MasterView extends StatelessWidget {
           child: Column(children: [
             const Spacer(flex: 1),
             Column(children: [
-              bookCarousel(state),
+              BlocProvider.value(
+                value: cubit,
+                child: BookCarousel(aspRat: aspRat, phone: phone),
+              ),
               const SizedBox(
                 height: 10,
               ),
@@ -126,7 +128,8 @@ class MasterView extends StatelessWidget {
                   child: SizedBox(
                     child: SingleChildScrollView(
                       child: BlocProvider(
-                        create: (context) => StatisticsDialogCubit(state.books, state.members),
+                        create: (context) =>
+                            StatisticsDialogCubit(state.books, state.members),
                         child: StatisticsTile(),
                       ),
                     ),
@@ -166,9 +169,8 @@ class MasterView extends StatelessWidget {
                         showCommentDialog();
                       } else {
                         showOverlayMessage(
-                          context: context,
-                          message: CustomStrings.commentsNotAvailable
-                        );
+                            context: context,
+                            message: CustomStrings.commentsNotAvailable);
                       }
                     },
                     child: const Icon(Icons.comment)),
@@ -204,9 +206,6 @@ class MasterView extends StatelessWidget {
                 case const (MasterViewShowFinishDialog):
                   showFinishDialog(
                       (state as MasterViewShowFinishDialog).finishSentences);
-                  break;
-                case const (MasterViewShowDescriptionDialog):
-                  showDescriptionDialog();
                   break;
                 case const (MasterViewShowUpdateDialog):
                   showUpdateDialog();
@@ -254,17 +253,6 @@ class MasterView extends StatelessWidget {
 
   //Dialogs
 
-  void showAddDialog() {
-    showDialog(
-        context: context,
-        builder: (builder) {
-          return BlocProvider.value(
-            value: cubit,
-            child: AddDialog(),
-          );
-        });
-  }
-
   void showUpdateDialog() async {
     showDialog(
         context: context,
@@ -281,7 +269,9 @@ class MasterView extends StatelessWidget {
         context: context,
         builder: (builder) {
           return BlocProvider(
-            create: (context) => StatisticsDialogCubit((cubit.state as MasterViewLoaded).books, (cubit.state as MasterViewLoaded).members),
+            create: (context) => StatisticsDialogCubit(
+                (cubit.state as MasterViewLoaded).books,
+                (cubit.state as MasterViewLoaded).members),
             child: StatisticsDialog(),
           );
         });
@@ -309,105 +299,7 @@ class MasterView extends StatelessWidget {
         });
   }
 
-  void showDescriptionDialog() {
-    showDialog(
-      context: context,
-      builder: (builder) {
-        return CustomDialog(
-          backgroundColor: Color(book.color!), 
-          content: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-            ),
-            child: description(book))
-        );
-      });
-  }
-
-  Widget description(Book i) => SingleChildScrollView(
-      child: SelectableText(i.description ?? '',
-          onTap: () => cubit.toggleDescription(i.id!, phone),
-          style: TextStyle(
-              color: Color(i.color!).computeLuminance() > 0.2
-                  ? Colors.black
-                  : Colors.white)));
-
-  Widget bookPlaceholder(state) {
-    return state.admin! && book == state.books.last
-        ? Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/book_placeholder.jpeg'),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: GestureDetector(
-              onTap: () => showAddDialog(),
-              child: const Center(
-                child: Icon(Icons.add, color: Colors.black, size: 100),
-              ),
-            ))
-        : Image.asset('assets/images/book_placeholder.jpeg');
-  }
-
   //Widgets
-
-  Widget bookCarousel(state) {
-    return CarouselSlider(
-      carouselController: state.carouselSliderController,
-      options: CarouselOptions(
-        height: MediaQuery.of(context).size.height / (aspRat < 1 ? 3 : 2),
-        viewportFraction: phone ? 0.25 / aspRat : 0.4 / aspRat,
-        initialPage: state.books.indexWhere((b) => b.id == book.id),
-        enableInfiniteScroll: false,
-        reverse: false,
-        autoPlay: false,
-        enlargeCenterPage: true,
-        enlargeFactor: 0.25,
-        scrollDirection: Axis.horizontal,
-        onPageChanged: (index, reason) => cubit.changePage(index),
-      ),
-      items: state.books.map<Widget>((i) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: GestureDetector(
-            onTap: () => cubit.showDescriptionDialog(i, phone),
-            child: !defaultBook(i.from) &&
-                    state.showDescription &&
-                    i.id == book.id
-                ? Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: Color(i.color!)),
-                    child: description(i))
-                : Stack(children: [
-                    !defaultBook(i.from)
-                        ? Image.network(i.image_path!)
-                        : bookPlaceholder(state),
-                    Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(5),
-                          child: CircleAvatar(
-                            radius: phone ? 20 : 30,
-                            backgroundImage: members
-                                        .firstWhere((m) => m.id == i.providerId)
-                                        .profilePicture !=
-                                    null
-                                ? MemoryImage(members
-                                    .firstWhere((m) => m.id == i.providerId)
-                                    .profilePicture!) as ImageProvider<Object>
-                                : const AssetImage(
-                                    'assets/images/pp_placeholder.jpeg'),
-                          ),
-                        ))
-                  ]),
-          ),
-        );
-      }).toList(),
-    );
-  }
 
   Widget votingBoard() {
     return GridView.builder(
