@@ -16,6 +16,8 @@ class CustomDialog extends StatelessWidget {
   final double padding;
   final double? margin;
   final Color? backgroundColor;
+  final double? width;
+  final EdgeInsets? insetPadding;
   late BuildContext context;
 
   CustomDialog({
@@ -27,6 +29,8 @@ class CustomDialog extends StatelessWidget {
     this.padding = 20,
     this.margin,
     this.backgroundColor,
+    this.width,
+    this.insetPadding,
   });
 
   Widget column(){
@@ -55,10 +59,10 @@ class CustomDialog extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: Dialog(
-          insetPadding: fullWindow ? const EdgeInsets.all(15) : (title == null ? const EdgeInsets.all(15) : null),
+          insetPadding: insetPadding ?? (fullWindow ? const EdgeInsets.all(15) : (title == null ? const EdgeInsets.all(15) : null)),
           child: SizedBox(
             height: fullWindow ? MediaQuery.of(context).size.height : null,
-            width: fullWindow ? MediaQuery.of(context).size.width : double.minPositive,
+            width: fullWindow ? MediaQuery.of(context).size.width : width ?? double.minPositive,
             child: Stack(
               children: [
                 Container(

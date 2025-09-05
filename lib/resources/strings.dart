@@ -14,4 +14,7 @@ class CustomStrings {
   static const String addDialogTitle = 'Add a new book';
   static const String addSubmitButton = 'Add book';
   static const String addDialogValidationError = 'Please fill in all fields';
+  static const String myOtherBooks = 'Was ich grad noch so lese';
+  static const String noOtherBooks = 'Ich lese gerade keine anderen Bücher';
+  static const String profileDialogErrorNoGoodreadsId = 'Ich habe noch keine Goodreads ID hinterlegt';
 }

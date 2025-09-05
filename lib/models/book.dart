@@ -12,6 +12,7 @@ class Book{
 
   Book({this.id, required this.name, required this.imagePath, required this.author, required this.pages, required this.from, required this.to, required this.description, required this.providerId});
 
+  Book.goodreads({required this.name, required this.imagePath, required this.author, required this.pages, required this.description});
 
   Map<String, dynamic> toMap() => {
     'name': name,

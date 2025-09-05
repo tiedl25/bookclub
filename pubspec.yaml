@@ -44,6 +44,8 @@ dependencies:
   flutter_dotenv: ^5.2.1
   flutter_bloc: any
   cached_network_image: ^3.4.1
+  xml: ^6.6.1
+  flutter_html: ^3.0.0
 
 dev_dependencies:
   flutter_test:

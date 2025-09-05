@@ -1,5 +1,7 @@
 import 'package:bookclub/bloc/masterview_bloc.dart';
 import 'package:bookclub/bloc/masterview_states.dart';
+import 'package:bookclub/bloc/profileDialog_bloc.dart';
+import 'package:bookclub/dialogs/profileDialog.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/models/progress.dart';
@@ -13,19 +15,30 @@ mixin ProgressTileMixin on StatelessWidget {
   late BuildContext context;
   late MasterViewCubit cubit;
   late Book book;
+  late Member member;
 
-  bool get futureBook =>
-      book.from == null || book.from!.isAfter(DateTime.now());
+  late bool isPhone;
 
-  Widget progressIndicator(Progress progress, List<Member> members) {
+  bool get futureBook => book.from == null || book.from!.isAfter(DateTime.now());
+
+  void showProfile() {
+    showDialog(
+      context: context,
+      builder: (builder) {
+        return BlocProvider(
+          create: (context) => ProfileDialogCubit(member: member),
+          child: ProfileDialog(isPhone: isPhone),
+        );
+      });
+  }
+
+  Widget progressIndicator(Progress progress) {
     return Stack(children: [
       LinearProgressIndicator(
         minHeight: 20,
         value: progress.page / (progress.maxPages ?? book.pages!),
         borderRadius: BorderRadius.circular(10),
-        color: Color(members
-            .firstWhere((element) => element.id == progress.memberId)
-            .color),
+        color: Color(member.color),
       ),
       Align(
         alignment: AlignmentGeometry.lerp(
@@ -60,28 +73,28 @@ mixin ProgressTileMixin on StatelessWidget {
     }));
   }
 
-  List<Widget> progressDescription(
-      nameMaxLength, Progress progress, List<Member> members) {
+  List<Widget> progressDescription(nameMaxLength, Progress progress) {
     return <Widget>[
-      CircleAvatar(
-        radius: 10,
-        backgroundImage: members
-                    .firstWhere((element) => element.id == progress.memberId)
-                    .profilePicture !=
-                null
-            ? MemoryImage(members
-                .firstWhere((element) => element.id == progress.memberId)
-                .profilePicture!) as ImageProvider<Object>
-            : const AssetImage('assets/images/pp_placeholder.jpeg'),
+      GestureDetector(
+        onTap: () => showProfile(),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 10,
+              backgroundImage: member.profilePicture !=
+                      null
+                  ? MemoryImage(member.profilePicture!) as ImageProvider<Object>
+                  : const AssetImage('assets/images/pp_placeholder.jpeg'),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            SizedBox(
+                width: nameMaxLength,
+                child: Text(member.name)),
+          ],
+        ),
       ),
-      const SizedBox(
-        width: 10,
-      ),
-      SizedBox(
-          width: nameMaxLength,
-          child: Text(members
-              .firstWhere((element) => element.id == progress.memberId)
-              .name)),
       IconButton(
         onPressed: () async {
           bool? login = await showLoginDialog(
@@ -97,8 +110,9 @@ mixin ProgressTileMixin on StatelessWidget {
 
 class ProgressTileMobile extends StatelessWidget with ProgressTileMixin {
   Progress progress;
+  bool isPhone;
 
-  ProgressTileMobile({super.key, required this.progress});
+  ProgressTileMobile({super.key, required this.progress, required this.isPhone});
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +124,7 @@ class ProgressTileMobile extends StatelessWidget with ProgressTileMixin {
       builder: (context, state) {
         state as MasterViewLoaded;
         book = state.book;
+        member = state.members.firstWhere((element) => element.id == progress.memberId);
 
         return Column(children: [
           SingleChildScrollView(
@@ -120,7 +135,7 @@ class ProgressTileMobile extends StatelessWidget with ProgressTileMixin {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ...progressDescription(
-                      state.nameMaxLength, progress, state.members),
+                      state.nameMaxLength, progress),
                   Expanded(child: rating(progress)),
                 ],
               ),
@@ -129,7 +144,7 @@ class ProgressTileMobile extends StatelessWidget with ProgressTileMixin {
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             child: !futureBook
-                ? progressIndicator(progress, state.members)
+                ? progressIndicator(progress)
                 : Container(),
           )
         ]);
@@ -140,8 +155,9 @@ class ProgressTileMobile extends StatelessWidget with ProgressTileMixin {
 
 class ProgressTileDesktop extends StatelessWidget with ProgressTileMixin {
   Progress progress;
+  bool isPhone;
 
-  ProgressTileDesktop({super.key, required this.progress});
+  ProgressTileDesktop({super.key, required this.progress, required this.isPhone});
 
   @override
   Widget build(BuildContext context) {
@@ -153,19 +169,20 @@ class ProgressTileDesktop extends StatelessWidget with ProgressTileMixin {
       builder: (context, state) {
         state as MasterViewLoaded;
         book = state.book;
+        member = state.members.firstWhere((element) => element.id == progress.memberId);
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             ...progressDescription(
-                state.nameMaxLength, progress, state.members),
+                state.nameMaxLength, progress),
             const Spacer(
               flex: 1,
             ),
             Expanded(
               flex: 30,
               child: !futureBook
-                  ? progressIndicator(progress, state.members)
+                  ? progressIndicator(progress)
                   : Container(),
             ),
             const Spacer(

@@ -7,8 +7,9 @@ class Member{
   bool veto;
   Uint8List? profilePicture;
   DateTime birthDate;
+  String? goodreadsId;
 
-  Member({this.id, required this.name, required this.color, required this.veto, this.profilePicture, required this.birthDate});
+  Member({this.id, required this.name, required this.color, required this.veto, this.profilePicture, required this.birthDate, this.goodreadsId});
 
   Map<String, dynamic> toMap() => {
     'name': name,
@@ -23,6 +24,7 @@ class Member{
       color: map['color'],
       veto: map['veto'],
       birthDate: DateTime.parse(map['birthdate']),
+      goodreadsId: map['goodreads_id'],
     );
   }
 }

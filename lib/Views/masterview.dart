@@ -66,7 +66,7 @@ class MasterView extends StatelessWidget {
             Column(children: [
               BlocProvider.value(
                 value: cubit,
-                child: BookCarousel(aspRat: aspRat, phone: phone),
+                child: BookCarousel(aspRat: aspRat, isPhone: phone),
               ),
               const SizedBox(
                 height: 10,
@@ -358,9 +358,9 @@ class MasterView extends StatelessWidget {
           return BlocProvider.value(
             value: cubit,
             child: phone
-              ? ProgressTileMobile(progress: state.progressList[i])
-              : ProgressTileDesktop(progress: state.progressList[i]),
-          );              
+              ? ProgressTileMobile(progress: state.progressList[i], isPhone: phone)
+              : ProgressTileDesktop(progress: state.progressList[i], isPhone: phone),
+          );
         });
   }
 }
