@@ -116,7 +116,7 @@ class MasterView extends StatelessWidget {
                 child: !futureBook ? memberBoard(state) : votingBoard()),
           ]),
         ),
-        const VerticalDivider(),
+        if (!phone) const SizedBox(width: 10),
         if (!phone)
           Expanded(
             flex: 20,
