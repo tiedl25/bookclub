@@ -44,7 +44,7 @@ class StatisticsDialogCubit extends Cubit<StatisticsDialogState> {
 
     Map<String, double> ratingByBook = {};
     for (var book in newState.books){
-      var bookProgress = newState.progressList.where((element) => element.bookId == book.id && element.rating != null && element.page > 0);
+      var bookProgress = newState.progressList.where((element) => element.bookId == book.id && element.rating != null && element.rating != 0 && element.page > 0);
       if (bookProgress.isNotEmpty){
         final parts = bookProgress.map((e) => e.rating ?? 0).toList();
         double overalRating = parts.reduce((element, value) => element + value) / parts.length;
