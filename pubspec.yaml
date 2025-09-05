@@ -41,7 +41,6 @@ dependencies:
   auto_size_text: ^3.0.0
   palette_generator: any
   image: any
-  flutter_dotenv: ^5.2.1
   flutter_bloc: any
   cached_network_image: ^3.4.1
   xml: ^6.6.1
@@ -72,7 +71,6 @@ flutter:
   assets:
     - assets/images/book_placeholder.jpeg
     - assets/images/pp_placeholder.jpeg
-    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
