@@ -6,15 +6,14 @@ import 'package:bookclub/bloc/masterview_states.dart';
 import 'package:bookclub/bloc/statisticsDialog_bloc.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/dialogs/updateDialog.dart';
-import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/dialogs/statisticsDialog.dart';
 import 'package:bookclub/dialogs/commentDialog.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
-import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:bookclub/utils.dart';
 import 'package:bookclub/widgets/bookCarousel.dart';
+import 'package:bookclub/widgets/progressTile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -356,127 +355,12 @@ class MasterView extends StatelessWidget {
         itemCount: state.progressList.length,
         itemBuilder: (context, i) {
           //if (i == progressList.length) return const SizedBox(height: 70);
-          return phone
-              ? mobileProgress(state, state.progressList[i])
-              : desktopProgress(state, state.progressList[i]);
+          return BlocProvider.value(
+            value: cubit,
+            child: phone
+              ? ProgressTileMobile(progress: state.progressList[i])
+              : ProgressTileDesktop(progress: state.progressList[i]),
+          );              
         });
-  }
-
-  List<Widget> progressDescription(state, Progress progress) {
-    return <Widget>[
-      CircleAvatar(
-        radius: 10,
-        backgroundImage: members
-                    .firstWhere((element) => element.id == progress.memberId)
-                    .profilePicture !=
-                null
-            ? MemoryImage(members
-                .firstWhere((element) => element.id == progress.memberId)
-                .profilePicture!) as ImageProvider<Object>
-            : const AssetImage('assets/images/pp_placeholder.jpeg'),
-      ),
-      const SizedBox(
-        width: 10,
-      ),
-      SizedBox(
-          width: state.nameMaxLength,
-          child: Text(members
-              .firstWhere((element) => element.id == progress.memberId)
-              .name)),
-      IconButton(
-        onPressed: () async {
-          bool? login = await showLoginDialog(
-              cubit, context, CustomStrings.loginDialogTitle);
-          if (!login!) return;
-          cubit.showUpdateDialog(login, progress);
-        },
-        icon: const Icon(Icons.update),
-      ),
-    ];
-  }
-
-  Widget mobileProgress(state, Progress progress) {
-    return Column(children: [
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ...progressDescription(state, progress),
-              Expanded(child: rating(progress)),
-            ],
-          ),
-        ),
-      ),
-      SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9,
-        child: !futureBook ? progressIndicator(progress) : Container(),
-      )
-    ]);
-  }
-
-  Widget desktopProgress(state, Progress progress) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        ...progressDescription(state, progress),
-        const Spacer(
-          flex: 1,
-        ),
-        Expanded(
-          flex: 30,
-          child: !futureBook ? progressIndicator(progress) : Container(),
-        ),
-        const Spacer(
-          flex: 1,
-        ),
-        rating(progress),
-      ],
-    );
-  }
-
-  Widget progressIndicator(Progress progress) {
-    return Stack(children: [
-      LinearProgressIndicator(
-        minHeight: 20,
-        value: progress.page / (progress.maxPages ?? book.pages!),
-        borderRadius: BorderRadius.circular(10),
-        color: Color(members
-            .firstWhere((element) => element.id == progress.memberId)
-            .color),
-      ),
-      Align(
-        alignment: AlignmentGeometry.lerp(
-                Alignment.bottomLeft,
-                Alignment.bottomRight,
-                progress.page / (progress.maxPages ?? book.pages!))
-            as AlignmentGeometry,
-        child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(progress.page == (progress.maxPages ?? book.pages)
-                ? 'Finished'
-                : 'Seite ${progress.page} (${(progress.page / (progress.maxPages ?? book.pages!) * 100).toStringAsFixed(0)}%)')),
-      )
-    ]);
-  }
-
-  Widget rating(Progress progress) {
-    return Row(
-        children: List.generate(7, (index) {
-      return InkWell(
-        child: Icon(Icons.book,
-            color: progress.rating == null || progress.rating! < index + 1
-                ? SpecialColors.bookDefaultColor
-                : SpecialColors.bookSelectedColor),
-        onTap: () async {
-          final login = await showLoginDialog(
-              cubit, context, CustomStrings.loginDialogTitle);
-          if (!login!) return;
-          cubit.rate(login, progress, index + 1);
-        },
-      );
-    }));
   }
 }
