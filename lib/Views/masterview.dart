@@ -119,7 +119,7 @@ class MasterView extends StatelessWidget {
         const VerticalDivider(),
         if (!phone)
           Expanded(
-            flex: 30,
+            flex: 20,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               if (!phone)
