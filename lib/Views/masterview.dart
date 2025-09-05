@@ -301,48 +301,54 @@ class MasterView extends StatelessWidget {
   //Widgets
 
   Widget votingBoard() {
-    return GridView.builder(
-      padding: EdgeInsets.only(
-          top: 10, left: 10, right: 10, bottom: phone ? 70 : 10),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          crossAxisCount: 2,
-          childAspectRatio: 5 / 2),
-      itemCount: members.length,
-      itemBuilder: (context, i) => TextButton(
-          style: TextButton.styleFrom(
-              backgroundColor: members[i].veto
-                  ? Color(members[i].color)
-                  : Theme.of(context).colorScheme.primaryContainer,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20))),
-          onPressed: () async {
-            bool? login = await showLoginDialog(
-                cubit, context, CustomStrings.loginDialogTitle);
-            if (!login!) return;
-            cubit.vote(login, i);
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 10,
-                backgroundImage: members[i].profilePicture != null
-                    ? MemoryImage(members[i].profilePicture!)
-                        as ImageProvider<Object>
-                    : const AssetImage('assets/images/pp_placeholder.jpeg'),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                members[i].name,
-                style: TextStyle(
-                    color: members[i].veto
-                        ? Colors.black
-                        : Theme.of(context).textTheme.bodySmall?.color),
-              ),
-            ],
-          )),
+    return Container(
+      constraints: const BoxConstraints(
+        maxWidth: 500,
+      ),
+      child: GridView.builder(
+        padding: EdgeInsets.only(
+            top: 10, left: 10, right: 10, bottom: phone ? 70 : 10),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          mainAxisExtent: 60,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            crossAxisCount: 2,
+            childAspectRatio: 5 / 2),
+        itemCount: members.length,
+        itemBuilder: (context, i) => TextButton(
+            style: TextButton.styleFrom(
+                backgroundColor: members[i].veto
+                    ? Color(members[i].color)
+                    : Theme.of(context).colorScheme.primaryContainer,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20))),
+            onPressed: () async {
+              bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
+              if (!login!) return;
+              cubit.vote(login, i);
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 10,
+                  backgroundImage: members[i].profilePicture != null
+                      ? MemoryImage(members[i].profilePicture!)
+                          as ImageProvider<Object>
+                      : const AssetImage('assets/images/pp_placeholder.jpeg'),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  members[i].name,
+                  style: TextStyle(
+                      color: members[i].veto
+                          ? Colors.black
+                          : Theme.of(context).textTheme.bodySmall?.color),
+                ),
+              ],
+            )),
+      ),
     );
   }
 
