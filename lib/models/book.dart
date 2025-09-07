@@ -10,7 +10,7 @@ class Book{
   int? providerId;
   int? color;
 
-  Book({this.id, required this.name, required this.imagePath, required this.author, required this.pages, required this.from, required this.to, required this.description, required this.providerId});
+  Book({this.id, required this.name, required this.imagePath, required this.author, required this.pages, required this.from, required this.to, required this.description, required this.providerId, required this.color});
 
   Book.goodreads({required this.name, required this.imagePath, required this.author, required this.pages, required this.description});
 
@@ -22,7 +22,8 @@ class Book{
     'from': from!.toIso8601String(),
     'to': to!.toIso8601String(),
     'description': description,
-    'provider': providerId
+    'provider': providerId,
+    'color': color
   };
 
   factory Book.fromMap(Map<String, dynamic> map) {
@@ -36,6 +37,7 @@ class Book{
       to: DateTime.parse(map['to']),
       description: map['description'],
       providerId: map['provider'],
+      color: map['color']
     );
   }
 }

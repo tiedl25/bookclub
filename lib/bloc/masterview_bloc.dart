@@ -9,7 +9,6 @@ import 'package:bookclub/models/progress.dart';
 import 'package:bookclub/resources/strings.dart';
 import 'package:bookclub/result.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:http/http.dart' as http;
@@ -68,7 +67,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
       final members = await DatabaseHelper.instance.getMemberList();
       final books = await DatabaseHelper.instance.getBookList();
       final Book book = (await DatabaseHelper.instance.getCurrentBook()) ?? books.last;
-      book.color = (await getDominantColor(book.imagePath) ?? Colors.white).toARGB32();
+      book.color ??= (await getDominantColor(book.imagePath) ?? Colors.white).toARGB32();
       final double nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*7;
       final List<String> finishSentences = await DatabaseHelper.instance.getFinishSentences();
 
@@ -86,11 +85,15 @@ class MasterViewCubit extends Cubit<MasterViewState> {
           description: null,
           providerId: getProviderId(books.last, members),
           from: null,
+          color: Colors.white.toARGB32(),
         ));
       }
 
       for (Book b in books) {
-        b.color ??= Colors.white.toARGB32();
+        if (b.color == null) {
+          b.color = (await getDominantColor(b.imagePath) ?? Colors.white).toARGB32();
+          await DatabaseHelper.instance.updateBook(b);
+        }
         if (b.id == book.id) {
           b.color = book.color;
         }
@@ -361,6 +364,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         from: dateRange.start,
         to: dateRange.end,
         providerId: providerId,
+        color: (await getDominantColor(imagePath) ?? Colors.white).toARGB32()
       )
     );
 
