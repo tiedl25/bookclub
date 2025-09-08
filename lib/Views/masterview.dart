@@ -97,13 +97,13 @@ class MasterView extends StatelessWidget {
                 textAlign: TextAlign.center,
                 minFontSize: 16,
               ),
-              if (futureBook && state.members.every((e) => e.veto))
+              if (futureBook && state.members.where((e) => e.id != book.providerId).every((e) => e.veto))
                 const AutoSizeText(
                   CustomStrings.veto,
                   textAlign: TextAlign.center,
                   minFontSize: 14,
                 ),
-              if (futureBook && !state.members.every((e) => e.veto))
+              if (futureBook && !state.members.where((e) => e.id != book.providerId).every((e) => e.veto))
                 const AutoSizeText(
                   CustomStrings.vetoInfo,
                   textAlign: TextAlign.center,
@@ -301,6 +301,8 @@ class MasterView extends StatelessWidget {
   //Widgets
 
   Widget votingBoard() {
+    List<Member> votingMembers = members.where((element) => element.id != book.providerId).toList();
+
     return Container(
       constraints: const BoxConstraints(
         maxWidth: 500,
@@ -314,18 +316,18 @@ class MasterView extends StatelessWidget {
             crossAxisSpacing: 10,
             crossAxisCount: 2,
             childAspectRatio: 5 / 2),
-        itemCount: members.length,
+        itemCount: votingMembers.length,
         itemBuilder: (context, i) => TextButton(
             style: TextButton.styleFrom(
-                backgroundColor: members[i].veto
-                    ? Color(members[i].color)
+                backgroundColor: votingMembers[i].veto
+                    ? Color(votingMembers[i].color)
                     : Theme.of(context).colorScheme.primaryContainer,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20))),
             onPressed: () async {
               bool? login = await showLoginDialog(cubit, context, CustomStrings.loginDialogTitle);
               if (!login!) return;
-              cubit.vote(login, i);
+              cubit.vote(login, votingMembers.firstWhere((element) => element.id == votingMembers[i].id).id!);
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -333,16 +335,16 @@ class MasterView extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 10,
-                  backgroundImage: members[i].profilePicture != null
-                      ? MemoryImage(members[i].profilePicture!)
+                  backgroundImage: votingMembers[i].profilePicture != null
+                      ? MemoryImage(votingMembers[i].profilePicture!)
                           as ImageProvider<Object>
                       : const AssetImage('assets/images/pp_placeholder.jpeg'),
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  members[i].name,
+                  votingMembers[i].name,
                   style: TextStyle(
-                      color: members[i].veto
+                      color: votingMembers[i].veto
                           ? Colors.black
                           : Theme.of(context).textTheme.bodySmall?.color),
                 ),

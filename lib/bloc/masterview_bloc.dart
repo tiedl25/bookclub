@@ -205,13 +205,14 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     emit(newState);
   }
 
-  Future<void> vote(bool? login, int voteButtonIndex) async {
+  Future<void> vote(bool? login, int voterId) async {
     final newState = (state as MasterViewLoaded).copy();
 
     newState.login = login!;
     newState.admin = await DatabaseHelper.instance.checkAdmin();
-    newState.members[voteButtonIndex].veto = !newState.members[voteButtonIndex].veto;
-    DatabaseHelper.instance.updateMember(newState.members[voteButtonIndex]);
+    Member member = newState.members.firstWhere((Member member) => member.id == voterId);
+    member.veto = !member.veto;
+    DatabaseHelper.instance.updateMember(member);
 
     emit(newState);
   }
