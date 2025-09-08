@@ -308,6 +308,8 @@ class MasterView extends StatelessWidget {
         maxWidth: 500,
       ),
       child: GridView.builder(
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
         padding: EdgeInsets.only(
             top: 10, left: 10, right: 10, bottom: phone ? 70 : 10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
