@@ -36,7 +36,7 @@ class StatisticsDialogCubit extends Cubit<StatisticsDialogState> {
         progressByMember[member.name] = overalProgress;
       }
     }
-    return Map.fromEntries(progressByMember.entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
+    return Map.fromEntries(progressByMember.entries.toList().where((e) => e.value < 1).toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
   }
 
   Map<String, double> bookRatingList(){
