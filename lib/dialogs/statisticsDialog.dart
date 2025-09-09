@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:bookclub/bloc/statisticsDialog_bloc.dart';
 import 'package:bookclub/bloc/statisticsDialog_states.dart';
 import 'package:bookclub/resources/colors.dart';
 import 'package:bookclub/models/member.dart';
 import 'package:bookclub/dialogs/dialog.dart';
 import 'package:bookclub/resources/strings.dart';
+import 'package:bookclub/widgets/ratingBarChart.dart';
 import 'package:flutter/material.dart' hide Dialog;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -75,7 +78,8 @@ mixin StatisticsMixin on StatelessWidget {
   }
 
   Widget bestRankedBook() {
-    final ratingByBook = cubit.bookRatingList().entries.toList();
+    dynamic ratingByBook = cubit.bookRatingList().entries.toList()..sort((e1, e2) => e2.value.compareTo(e1.value));
+    ratingByBook = ratingByBook.sublist(0,3);
 
     int iconIndex=0;
     final bookIcons = [];
@@ -108,7 +112,7 @@ mixin StatisticsMixin on StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Flexible(flex: 10, child: Text(e.key, style: const TextStyle(fontSize: 16))),
+                      Flexible(flex: 10, child: Text(e.key.name!, style: const TextStyle(fontSize: 16))),
                       const Spacer(),
                       Text("${(e.value).toStringAsFixed(2)} ", style: const TextStyle(fontSize: 16)),
                     ]
@@ -121,6 +125,72 @@ mixin StatisticsMixin on StatelessWidget {
         )
       ]
     );
+  }
+
+  Widget mostCriticalMember() {
+    dynamic ratingByMember = (cubit.memberRatingList().entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
+    ratingByMember = ratingByMember.sublist(0,3);
+
+    int iconIndex=0;
+    final bookIcons = [];
+
+    for (var i = 0; i < ratingByMember.length; i++){
+      if (i == 0) bookIcons.add(icons[0]);
+      else if (ratingByMember[i].value == ratingByMember[i-1].value || iconIndex > 2){
+        bookIcons.add(icons[iconIndex]);
+      } else {
+        bookIcons.add(icons[iconIndex+1]);
+        if (iconIndex<3) iconIndex++;
+      }
+    }
+
+    return Column(
+      children: [
+        const Text(CustomStrings.statisticsTitle3, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ListView.builder(
+          shrinkWrap: true,
+          itemCount: ratingByMember.length,
+          itemBuilder: (context, index) {
+            final e = ratingByMember[index];
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.start, 
+              children: [
+                bookIcons[index],
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(flex: 10, child: Text(e.key.name, style: const TextStyle(fontSize: 16))),
+                      const Spacer(),
+                      Text("${(e.value).toStringAsFixed(2)} ", style: const TextStyle(fontSize: 16)),
+                    ]
+                  )
+                ),
+                Icon(Icons.book, color: SpecialColors.bookSelectedColor, size: 16)
+              ]
+            );
+          },          
+        )
+      ]
+    );
+  }
+
+  Widget averageMemberRating(){
+    final ratingByMember = cubit.memberRatingList().entries.toList();
+
+    return SizedBox(
+      height: 200,
+      child: RatingBarChart(title: CustomStrings.statisticsTitle5, angle: -math.pi / 3, spacing: 16, reservedSpace:  50, xAxisList: ratingByMember.map((e) => e.key).toList(), yAxisList: ratingByMember.map((e) => e.value).toList(), interval: 1));
+  }
+
+  Widget averageBookRating(){
+    final ratingByBook = cubit.bookRatingList().entries.toList();
+
+    return SizedBox(
+      height: 250,
+      child: RatingBarChart(title: CustomStrings.statisticsTitle6, angle: -math.pi / 2.5, spacing: 30, reservedSpace:  70, xAxisList: ratingByBook.map((e) => e.key).toList(), yAxisList: ratingByBook.map((e) => e.value).toList(), interval: 1));
   }
 }
 
@@ -138,12 +208,26 @@ class StatisticsDialog extends StatelessWidget with StatisticsMixin {
             fullWindow: true,
             content: Container(
               padding: const EdgeInsets.all(10),
-              child: Column(
-                children: [
-                  wallOfShame(state.members),
-                  const SizedBox(height: 30),
-                  bestRankedBook()
-                ]
+              child: Container(
+                constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height-60,
+                            maxWidth: MediaQuery.of(context).size.width,
+                          ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      wallOfShame(state.members),
+                      const SizedBox(height: 30),
+                      bestRankedBook(),
+                      const SizedBox(height: 30),
+                      mostCriticalMember(),
+                      const SizedBox(height: 30),
+                      averageMemberRating(),
+                      const SizedBox(height: 30),
+                      averageBookRating()
+                    ]
+                  ),
+                ),
               )
             ),
           )
@@ -168,7 +252,13 @@ class StatisticsTile extends StatelessWidget with StatisticsMixin {
               children: [
                 wallOfShame(state.members),
                 const SizedBox(height: 50),
-                bestRankedBook()
+                bestRankedBook(),
+                const SizedBox(height: 50),
+                mostCriticalMember(),
+                const SizedBox(height: 50),
+                averageMemberRating(),
+                const SizedBox(height: 50),
+                averageBookRating()
               ]
             )
           )
