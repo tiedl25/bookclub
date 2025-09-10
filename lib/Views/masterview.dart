@@ -152,43 +152,7 @@ class MasterView extends StatelessWidget {
     this.cubit = BlocProvider.of<MasterViewCubit>(context);
 
     aspRat = MediaQuery.of(context).size.aspectRatio;
-    return Scaffold(
-        resizeToAvoidBottomInset: false,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: phone
-            ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Spacer(
-                  flex: 3,
-                ),
-                FloatingActionButton(
-                    mini: true,
-                    //alignment: Alignment.bottomCenter,
-                    onPressed: () {
-                      if (!futureBook) {
-                        showCommentDialog();
-                      } else {
-                        showOverlayMessage(
-                            context: context,
-                            message: CustomStrings.commentsNotAvailable);
-                      }
-                    },
-                    child: const Icon(Icons.comment)),
-                const Spacer(
-                  flex: 1,
-                ),
-                FloatingActionButton(
-                    mini: true,
-                    //alignment: Alignment.bottomCenter,
-                    onPressed: () {
-                      showStatisticsDialog();
-                    },
-                    child: const Icon(Icons.bar_chart)),
-                const Spacer(
-                  flex: 3,
-                )
-              ])
-            : null,
-        body: BlocConsumer<MasterViewCubit, MasterViewState>(
+    return BlocConsumer<MasterViewCubit, MasterViewState>(
             bloc: cubit,
             listenWhen: (_, current) => current is MasterViewListener,
             listener: (context, state) {
@@ -214,7 +178,43 @@ class MasterView extends StatelessWidget {
             buildWhen: (_, current) =>
                 current.runtimeType == MasterViewLoaded ||
                 current.runtimeType == MasterViewLoading,
-            builder: (context, state) => state.runtimeType == MasterViewLoaded
+            builder: (context, state) => Scaffold(
+              resizeToAvoidBottomInset: false,
+              floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+              floatingActionButton: phone && state.runtimeType != MasterViewLoading
+                  ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Spacer(
+                        flex: 3,
+                      ),
+                      FloatingActionButton(
+                          mini: true,
+                          //alignment: Alignment.bottomCenter,
+                          onPressed: () {
+                            if (!futureBook) {
+                              showCommentDialog();
+                            } else {
+                              showOverlayMessage(
+                                  context: context,
+                                  message: CustomStrings.commentsNotAvailable);
+                            }
+                          },
+                          child: const Icon(Icons.comment)),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                      FloatingActionButton(
+                          mini: true,
+                          //alignment: Alignment.bottomCenter,
+                          onPressed: () {
+                            showStatisticsDialog();
+                          },
+                          child: const Icon(Icons.bar_chart)),
+                      const Spacer(
+                        flex: 3,
+                      )
+                    ])
+                  : null,
+              body: state.runtimeType == MasterViewLoaded
                 ? Stack(children: [
                     content(state as MasterViewLoaded),
                     topButtons(state)
