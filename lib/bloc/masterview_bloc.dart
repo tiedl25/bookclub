@@ -111,10 +111,6 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         progressList: progressList,
       );
 
-      Future.wait(books.map((b) async {
-        b.color = (await getDominantColor(b.imagePath) ?? Colors.white).toARGB32();
-      })).then((_) => emit(newState..books = books));
-
       emit(newState);
     } catch (e) {
       // On error, emit the error state
