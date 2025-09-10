@@ -41,6 +41,7 @@ mixin StatisticsMixin on StatelessWidget {
       children: [
         const Text(CustomStrings.statisticsTitle, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemCount: progressByMember.length,
           itemBuilder: (context, index) {
@@ -98,6 +99,7 @@ mixin StatisticsMixin on StatelessWidget {
       children: [
         const Text(CustomStrings.statisticsTitle2, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemCount: ratingByBook.length,
           itemBuilder: (context, index) {
@@ -148,6 +150,7 @@ mixin StatisticsMixin on StatelessWidget {
       children: [
         const Text(CustomStrings.statisticsTitle3, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
           itemCount: ratingByMember.length,
           itemBuilder: (context, index) {
