@@ -129,57 +129,6 @@ mixin StatisticsMixin on StatelessWidget {
     );
   }
 
-  Widget mostCriticalMember() {
-    dynamic ratingByMember = (cubit.memberRatingList().entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
-    ratingByMember = ratingByMember.sublist(0,3);
-
-    int iconIndex=0;
-    final bookIcons = [];
-
-    for (var i = 0; i < ratingByMember.length; i++){
-      if (i == 0) bookIcons.add(icons[0]);
-      else if (ratingByMember[i].value == ratingByMember[i-1].value || iconIndex > 2){
-        bookIcons.add(icons[iconIndex]);
-      } else {
-        bookIcons.add(icons[iconIndex+1]);
-        if (iconIndex<3) iconIndex++;
-      }
-    }
-
-    return Column(
-      children: [
-        const Text(CustomStrings.statisticsTitle3, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: ratingByMember.length,
-          itemBuilder: (context, index) {
-            final e = ratingByMember[index];
-
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.start, 
-              children: [
-                bookIcons[index],
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(flex: 10, child: Text(e.key.name, style: const TextStyle(fontSize: 16))),
-                      const Spacer(),
-                      Text("${(e.value).toStringAsFixed(2)} ", style: const TextStyle(fontSize: 16)),
-                    ]
-                  )
-                ),
-                Icon(Icons.book, color: SpecialColors.bookSelectedColor, size: 16)
-              ]
-            );
-          },          
-        )
-      ]
-    );
-  }
-
   Widget averageMemberRating(){
     final ratingByMember = cubit.memberRatingList().entries.toList();
 
@@ -223,8 +172,6 @@ class StatisticsDialog extends StatelessWidget with StatisticsMixin {
                       const SizedBox(height: 30),
                       bestRankedBook(),
                       const SizedBox(height: 30),
-                      mostCriticalMember(),
-                      const SizedBox(height: 30),
                       averageMemberRating(),
                       const SizedBox(height: 30),
                       averageBookRating()
@@ -256,8 +203,6 @@ class StatisticsTile extends StatelessWidget with StatisticsMixin {
                 wallOfShame(state.members),
                 const SizedBox(height: 50),
                 bestRankedBook(),
-                const SizedBox(height: 50),
-                mostCriticalMember(),
                 const SizedBox(height: 50),
                 averageMemberRating(),
                 const SizedBox(height: 50),
