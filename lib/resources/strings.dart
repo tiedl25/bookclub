@@ -3,7 +3,7 @@ class CustomStrings {
   static const String appDesription = 'A simple website to manage a bookclub';
   static const String statisticsTitle = "Wall of Shame";
   static const String statisticsTitle2 = "Most liked books";
-  static const String statisticsTitle3 = "Most critical member";
+  static const String statisticsTitle3 = "Greatest taste match";
   static const String statisticsTitle4 = "Greatest taste match";
   static const String statisticsTitle5 = "Average rating per member";
   static const String statisticsTitle6 = "Average rating per book";

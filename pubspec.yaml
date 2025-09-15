@@ -46,6 +46,7 @@ dependencies:
   xml: ^6.6.1
   flutter_html: ^3.0.0
   fl_chart: ^1.1.0
+  fl_heatmap: ^0.4.5
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:bookclub/bloc/statisticsDialog_states.dart';
 import 'package:bookclub/database.dart';
 import 'package:bookclub/models/book.dart';
 import 'package:bookclub/models/member.dart';
+import 'package:fl_heatmap/fl_heatmap.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StatisticsDialogCubit extends Cubit<StatisticsDialogState> {
@@ -69,5 +70,40 @@ class StatisticsDialogCubit extends Cubit<StatisticsDialogState> {
     }
     //return Map.fromEntries(ratingByMember.entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value)));
     return Map.fromEntries(ratingByMember.entries);
+  }
+
+  Map<Member, List<dynamic>> tasteMatch() {
+    final newState = (state as StatisticsDialogLoaded).copy();
+
+    Map<Member, List<dynamic>> tasteMatchByMember = {};
+    for (var member in newState.members){
+        tasteMatchByMember[member] = newState.members.map((otherMember) {
+          final diffs = <double>[];
+          for (var book in newState.books.sublist(0, newState.books.length - 1)) {
+
+            final otherProgress = newState.progressList.where((progress) => 
+              progress.memberId == otherMember.id && 
+              progress.bookId == book.id);
+
+            final myProgress = newState.progressList.where((progress) => 
+              progress.memberId == member.id &&
+              progress.bookId == book.id);
+
+            if (otherProgress.isNotEmpty && myProgress.isNotEmpty) {
+              double diff = ((myProgress.first.rating ?? 0) - (otherProgress.first.rating ?? 0)).abs() as double;
+              diffs.add(diff / 7);
+            }
+          }
+
+          return [otherMember, 1 - (diffs.isNotEmpty ? diffs.reduce((value, element) => value + element) / diffs.length : 1)];
+        }
+        ).toList();
+    }
+    return tasteMatchByMember;
+  }
+
+  void changeSelectedItem(HeatmapItem? selectedItem) {
+    final newState = (state as StatisticsDialogLoaded).copy();
+    emit(newState.copy()..selectedItem = selectedItem);
   }
 }
