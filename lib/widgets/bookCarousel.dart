@@ -135,7 +135,7 @@ class BookCarousel extends StatelessWidget {
                     !defaultBook(i.from)
                         ? CachedNetworkImage(
                             imageUrl: i.imagePath!,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.fill,
                             width: double.infinity,
                             height: double.infinity,
                             placeholder: (context, url) => CircularProgressIndicator(
