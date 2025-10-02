@@ -21,4 +21,5 @@ class CustomStrings {
   static const String myOtherBooks = 'Was ich grad noch so lese';
   static const String noOtherBooks = 'Ich lese gerade keine anderen Bücher';
   static const String profileDialogErrorNoGoodreadsId = 'Ich habe noch keine Goodreads ID hinterlegt';
+  static const String noComments = 'Sei der erste der einen Kommentar hinterlässt';
 }

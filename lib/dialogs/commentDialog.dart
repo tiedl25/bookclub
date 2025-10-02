@@ -196,7 +196,12 @@ mixin CommentMixin on StatelessWidget {
         return Column(
           children: [
             Expanded(
-              child: ListView.builder(
+              child: state.comments.isEmpty 
+                ? const Center(child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(CustomStrings.noComments),
+                ))
+                : ListView.builder(
                 physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
                 padding: const EdgeInsets.only(top: 10),
                 itemCount: state.comments.length,
