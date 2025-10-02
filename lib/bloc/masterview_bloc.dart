@@ -25,7 +25,10 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     final lastProviderId = lastBook.providerId;
     final sortedMembers = members;
     sortedMembers.sort((a, b) => b.birthDate.compareTo(a.birthDate));
-    final lastProviderIndex = sortedMembers.indexWhere((element) => element.id == lastProviderId);
+    int lastProviderIndex = sortedMembers.indexWhere((element) => element.id == lastProviderId);
+    if (lastProviderIndex >= sortedMembers.length-1) {
+      lastProviderIndex = -1;
+    }
     return sortedMembers[lastProviderIndex+1].id!;
   }
 
