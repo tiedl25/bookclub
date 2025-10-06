@@ -278,7 +278,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     newState.login = login!;
     newState.admin = await DatabaseHelper.instance.checkAdmin();
 
-    final Comment newComment = Comment(text: text, bookId: newState.book.id!, memberId: newState.members.firstWhere((Member member) => member.id == newState.selectedMember).id!);
+    final Comment newComment = Comment(text: text, bookId: newState.book.id!, memberId: newState.members[newState.selectedMember-1].id!);
 
     final commentMap = await DatabaseHelper.instance.addComment(newComment);
     newState.comments.add(Comment.fromMap(commentMap[0]));
