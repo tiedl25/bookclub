@@ -95,7 +95,13 @@ class AddDialog extends StatelessWidget {
       ),
       submitButton: TextButton(
         child: const Text(CustomStrings.addSubmitButton),
-        onPressed: () => [cubit.addBook(_formKey, title, author, pageNr, description, imagePath), Navigator.of(context).pop()],
+        onPressed: () {
+          if(!cubit.validateFormField(_formKey)){
+            return;
+          }
+          cubit.addBook(title, author, pageNr, description, imagePath);
+          Navigator.of(context).pop();
+        },
       ),
     );
   }

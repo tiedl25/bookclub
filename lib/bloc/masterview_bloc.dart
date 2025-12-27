@@ -344,11 +344,16 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     return DateTimeRange(start: startDate, end: endDate);
   }
 
-  Future<void> addBook(GlobalKey<FormState> formKey, String title, String author, int pageNr, String description, String imagePath) async {
+  validateFormField(GlobalKey<FormState> formKey) {
     if(!formKey.currentState!.validate()){
       MasterViewShowSnackBar(message: CustomStrings.addDialogValidationError);
+      return false;
     }
+    formKey.currentState!.save();
+    return true;
+  }
 
+  Future<void> addBook(String title, String author, int pageNr, String description, String imagePath) async {
     final newState = (state as MasterViewLoaded).copy();
 
     DateTimeRange dateRange = getDateRange(newState.books[newState.books.length - 2]);
@@ -367,8 +372,6 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         color: (await getDominantColor(imagePath) ?? Colors.white).toARGB32()
       )
     );
-
-    formKey.currentState!.save();
 
     emit(newState);
   }
