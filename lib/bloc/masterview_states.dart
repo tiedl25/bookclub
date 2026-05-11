@@ -117,7 +117,7 @@ class MasterViewUpdateDialog extends MasterViewLoaded {
     TextEditingController? currentPageController,
     TextEditingController? maxPagesController
   }) : currentPageController = currentPageController ?? TextEditingController(text: progress.page.toString())
-        ..selection = TextSelection(baseOffset: 0, extentOffset: progress.page.toString().length),
+        ..selection = TextSelection(baseOffset: 0, extentOffset: currentPageController?.text.length ?? progress.page.toString().length),
        maxPagesController = maxPagesController ?? TextEditingController(text: (progress.maxPages ?? book.pages).toString());
 
   factory MasterViewUpdateDialog.fromState(MasterViewLoaded state, Progress progress) {
