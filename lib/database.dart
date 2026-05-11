@@ -111,7 +111,7 @@ class DatabaseHelper {
 
     if (response.isNotEmpty) {
       return Member.fromMap(response)
-        ..profilePicture = await getProfilePicture(id);
+        ..profilePicture = await getProfilePicture(id);//"https://supabase.tiedl.rocks/storage/v1/object/public/profile_pictures/$id.jpg";
     } else {
       throw Exception('Member not found');
     }
@@ -123,12 +123,11 @@ class DatabaseHelper {
       return (await db.from('members').select().order('id', ascending: true));
     });
 
-    List<Member> members = [];
-    for (var i = 0; i < response.length; i++) {
-      Member member = Member.fromMap(response[i]);
-      member.profilePicture = await getProfilePicture(response[i]['id']);
-      members.add(member);
-    }
+    final members = await Future.wait(response.map((item) async {
+      Member member = Member.fromMap(item);
+      member.profilePicture = await getProfilePicture(item['id']);//"https://supabase.tiedl.rocks/storage/v1/object/public/profile_pictures/${member.id}.jpg";
+      return member;
+    }));
 
     return response.isNotEmpty ? members : [];
   }
@@ -137,7 +136,7 @@ class DatabaseHelper {
     try{
       return await Supabase.instance.client.storage
         .from('public/profile_pictures') // Replace with your storage bucket name
-        .download("$id.jpg");
+        .download("$id.webp");
     } catch (e) {
       return null;
     }

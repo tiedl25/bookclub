@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:bookclub/bloc/masterview_states.dart';
@@ -67,15 +68,25 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     try {
       final login = await DatabaseHelper.instance.checkLogin();
       final admin = await DatabaseHelper.instance.checkAdmin();
-      final members = await DatabaseHelper.instance.getMemberList();
-      final books = await DatabaseHelper.instance.getBookList();
-      final Book book = (await DatabaseHelper.instance.getCurrentBook()) ?? books.last;
+      final membersFuture = DatabaseHelper.instance.getMemberList();
+      final booksFuture = DatabaseHelper.instance.getBookList();
+      final currentBookFuture = DatabaseHelper.instance.getCurrentBook();
+      final finishSentencesFuture = DatabaseHelper.instance.getFinishSentences();
+
+      final results = await Future.wait([
+        membersFuture,
+        booksFuture,
+        currentBookFuture,
+        finishSentencesFuture,
+      ]);
+
+      final members = results[0] as List<Member>;
+      final books = results[1] as List<Book>;
+      final Book book = (results[2] as Book?) ?? books.last;
+      final List<String> finishSentences = results[3] as List<String>;
+
       book.color ??= (await getDominantColor(book.imagePath) ?? Colors.white).toARGB32();
       final double nameMaxLength = members.map((e) => e.name.length).toList().reduce(max)*7;
-      final List<String> finishSentences = await DatabaseHelper.instance.getFinishSentences();
-
-      final comments = await DatabaseHelper.instance.getComments(book.id!);
-      final progressList = await DatabaseHelper.instance.getProgressList(book.id!);
 
       if (books.last.from!.isBefore(DateTime.now())) {
         books.add(Book(
@@ -110,14 +121,30 @@ class MasterViewCubit extends Cubit<MasterViewState> {
         book: book,
         nameMaxLength: nameMaxLength,
         finishSentences: finishSentences,
-        comments: comments,
-        progressList: progressList,
+        comments: const [],
+        progressList: const [],
       );
 
       emit(newState);
+      unawaited(_loadBookDetails(book.id!));
     } catch (e) {
       // On error, emit the error state
       emit(MasterViewError(message: e.toString()));
+    }
+  }
+
+  Future<void> _loadBookDetails(int bookId) async {
+    final results = await Future.wait([
+      DatabaseHelper.instance.getComments(bookId),
+      DatabaseHelper.instance.getProgressList(bookId),
+    ]);
+
+    final currentState = state;
+    if (currentState is MasterViewLoaded && currentState.book.id == bookId) {
+      final updatedState = currentState.copy();
+      updatedState.comments = results[0] as List<Comment>;
+      updatedState.progressList = results[1] as List<Progress>;
+      emit(updatedState);
     }
   }
 
@@ -173,8 +200,12 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     else {
       newState.showDescription = false;
       if (newState.books.last != book) {
-        newState.comments = await DatabaseHelper.instance.getComments(book.id!);
-        newState.progressList = await DatabaseHelper.instance.getProgressList(book.id!);
+        final results = await Future.wait([
+          DatabaseHelper.instance.getComments(book.id!),
+          DatabaseHelper.instance.getProgressList(book.id!),
+        ]);
+        newState.comments = results[0] as List<Comment>;
+        newState.progressList = results[1] as List<Progress>;
       } else {
         newState.comments = [];
         newState.progressList = [];
@@ -194,8 +225,12 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     newState.showDescription = false;
 
     if (newState.books.last != newState.book) {
-      newState.comments = await DatabaseHelper.instance.getComments(newState.book.id!);
-      newState.progressList = await DatabaseHelper.instance.getProgressList(newState.book.id!);
+      final results = await Future.wait([
+        DatabaseHelper.instance.getComments(newState.book.id!),
+        DatabaseHelper.instance.getProgressList(newState.book.id!),
+      ]);
+      newState.comments = results[0] as List<Comment>;
+      newState.progressList = results[1] as List<Progress>;
     } else {
       newState.comments = [];
       newState.progressList = [];
